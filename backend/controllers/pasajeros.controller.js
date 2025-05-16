@@ -18,33 +18,6 @@ const obtenerPasajeroPorId = (req, res) => {
   });
 };
 
-// Crear un nuevo pasajero
-const crearPasajero = (req, res) => {
-  const pasajero = req.body;
-  const sql = `
-    INSERT INTO pasajeros 
-    (BMS, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, NumeroTelefono, horaEntrada, horaSalida, Direccion, puntoReferencia) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-  const values = [
-    pasajero.BMS,
-    pasajero.PrimerNombre,
-    pasajero.SegundoNombre,
-    pasajero.PrimerApellido,
-    pasajero.SegundoApellido,
-    pasajero.NumeroTelefono,
-    pasajero.horaEntrada,
-    pasajero.horaSalida,
-    pasajero.Direccion,
-    pasajero.puntoReferencia
-  ];
-
-  db.query(sql, values, (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.status(201).json({ idPasajero: result.insertId, ...pasajero });
-  });
-};
-
 // Actualizar pasajero por ID
 const actualizarPasajero = (req, res) => {
   const { id } = req.params;
