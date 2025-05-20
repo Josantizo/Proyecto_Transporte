@@ -1,150 +1,174 @@
-const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
+const { body, validationResult } = require('express-validator');
+const db = require('../config/db');
 
-// Configuración del rate limiter
+// Configuración del rate limiter para login
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
     max: 5, // 5 intentos
-    message: { message: 'Demasiados intentos de inicio de sesión. Por favor, intente nuevamente en 15 minutos.' }
+    message: 'Demasiados intentos de inicio de sesión, por favor intente más tarde'
 });
 
-// Configuración JWT
-const JWT_SECRET = process.env.JWT_SECRET || 'tu_secreto_jwt_super_seguro';
-const JWT_EXPIRES_IN = '24h';
-
-// Validaciones para el registro
-exports.validateRegister = [
-    body('CorreoEmpresarial')
-        .isEmail()
-        .withMessage('El correo electrónico no es válido')
-        .normalizeEmail(),
-    body('Contraseña')
-        .isLength({ min: 8 })
-        .withMessage('La contraseña debe tener al menos 8 caracteres')
-        .matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*])/)
-        .withMessage('La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial'),
+// Middleware para validar el registro
+const validateRegister = [
+    body('CorreoEmpresarial').isEmail().withMessage('Correo electrónico inválido'),
+    body('Contraseña').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
     body('BMS').notEmpty().withMessage('El BMS es requerido'),
     body('PrimerNombre').notEmpty().withMessage('El primer nombre es requerido'),
     body('PrimerApellido').notEmpty().withMessage('El primer apellido es requerido'),
-    body('NumeroTelefono').isMobilePhone().withMessage('El número de teléfono no es válido'),
-    body('Direccion').notEmpty().withMessage('La dirección es requerida')
+    body('NumeroTelefono').notEmpty().withMessage('El número de teléfono es requerido'),
+    body('Direccion').notEmpty().withMessage('La dirección es requerida'),
+    body('puntoReferencia').notEmpty().withMessage('El punto de referencia es requerido')
 ];
 
-// Validaciones para el login
-exports.validateLogin = [
-    body('CorreoEmpresarial')
-        .isEmail()
-        .withMessage('El correo electrónico no es válido')
-        .normalizeEmail(),
+// Middleware para validar el login
+const validateLogin = [
+    body('CorreoEmpresarial').isEmail().withMessage('Correo electrónico inválido'),
     body('Contraseña').notEmpty().withMessage('La contraseña es requerida')
 ];
 
-exports.registerUser = async (req, res) => {
-    const { CorreoEmpresarial, Contraseña, BMS, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, NumeroTelefono, Direccion, puntoReferencia } = req.body;
-
+// Función para registrar un nuevo usuario
+const registerUser = async (req, res) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { 
+            CorreoEmpresarial, 
+            Contraseña, 
+            BMS, 
+            PrimerNombre, 
+            SegundoNombre, 
+            PrimerApellido, 
+            SegundoApellido, 
+            NumeroTelefono, 
+            Direccion, 
+            puntoReferencia 
+        } = req.body;
+
         // Verificar si el correo ya está registrado
-        const [existingLogin] = await db.execute('SELECT * FROM login WHERE CorreoEmpresarial = ?', [CorreoEmpresarial]);
+        const [existingLogin] = await db.query('SELECT * FROM login WHERE CorreoEmpresarial = ?', [CorreoEmpresarial]);
         if (existingLogin.length > 0) {
             return res.status(400).json({ message: 'Este correo ya está registrado' });
         }
 
         // Insertar el pasajero primero
-        const [pasajeroResult] = await db.execute(
+        const [pasajeroResult] = await db.query(
             'INSERT INTO pasajeros (BMS, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, NumeroTelefono, Direccion, puntoReferencia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [BMS, PrimerNombre, SegundoNombre || null, PrimerApellido, SegundoApellido || null, NumeroTelefono, Direccion, puntoReferencia || null]
+            [BMS, PrimerNombre, SegundoNombre || null, PrimerApellido, SegundoApellido || null, NumeroTelefono, Direccion, puntoReferencia]
         );
         
         const idPasajero = pasajeroResult.insertId;
         
-        // Encriptar la contraseña antes de guardarla
-        const hashedPassword = await bcrypt.hash(Contraseña, 10);
+        // Encriptar la contraseña
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(Contraseña, salt);
 
         // Insertar el login con rol por defecto
-        const [loginResult] = await db.execute(
+        const [loginResult] = await db.query(
             'INSERT INTO login (CorreoEmpresarial, Contraseña, idPasajero_fk, rol) VALUES (?, ?, ?, ?)',
             [CorreoEmpresarial, hashedPassword, idPasajero, 'usuario']
         );
-        
+
         res.status(201).json({ 
-            message: 'Usuario registrado correctamente', 
+            message: 'Usuario registrado exitosamente',
             loginId: loginResult.insertId,
             pasajeroId: idPasajero
         });
     } catch (error) {
-        console.error('Error detallado en registro:', error);
-        res.status(500).json({ 
-            message: 'Error al registrar el usuario', 
-            error: error.message,
-            sqlMessage: error.sqlMessage || null
-        });
+        console.error('Error en el registro:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
     }
 };
 
-exports.loginUser = async (req, res) => {
-    // Validar los datos de entrada
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { CorreoEmpresarial, Contraseña } = req.body;
-
+// Función para iniciar sesión
+const loginUser = async (req, res) => {
     try {
-        const [loginData] = await db.execute(
-            'SELECT * FROM login WHERE CorreoEmpresarial = ?',
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const { CorreoEmpresarial, Contraseña } = req.body;
+
+        // Buscar el usuario en la tabla login
+        const [loginData] = await db.query(
+            'SELECT l.*, p.* FROM login l JOIN pasajeros p ON l.idPasajero_fk = p.idPasajero WHERE l.CorreoEmpresarial = ?',
             [CorreoEmpresarial]
         );
 
         if (loginData.length === 0) {
-            return res.status(400).json({ message: 'Correo no registrado' });
+            return res.status(400).json({ message: 'Credenciales inválidas' });
         }
 
-        const isMatch = await bcrypt.compare(Contraseña, loginData[0].Contraseña);
+        const user = loginData[0];
 
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Contraseña incorrecta' });
+        // Verificar la contraseña
+        const validPassword = await bcrypt.compare(Contraseña, user.Contraseña);
+        if (!validPassword) {
+            return res.status(400).json({ message: 'Credenciales inválidas' });
         }
 
-        // Generar token JWT
+        // Generar el token JWT
         const token = jwt.sign(
-            { id: loginData[0].idLogin, correo: CorreoEmpresarial },
-            JWT_SECRET,
-            { expiresIn: JWT_EXPIRES_IN }
+            { 
+                id: user.idLogin, 
+                email: user.CorreoEmpresarial,
+                rol: user.rol
+            },
+            process.env.JWT_SECRET || 'tu_secreto_jwt',
+            { expiresIn: '24h' }
         );
 
-        // Obtener información del pasajero
-        const [pasajeroData] = await db.execute(
-            'SELECT * FROM pasajeros WHERE idPasajero = ?',
-            [loginData[0].idPasajero_fk]
-        );
-
-        // El usuario está autenticado
-        res.status(200).json({ message: 'Inicio de sesión exitoso', userId: loginData[0].idLogin });
+        res.json({
+            token,
+            user: {
+                id: user.idLogin,
+                email: user.CorreoEmpresarial,
+                rol: user.rol,
+                pasajero: {
+                    id: user.idPasajero,
+                    BMS: user.BMS,
+                    nombre: `${user.PrimerNombre} ${user.SegundoNombre || ''}`.trim(),
+                    apellido: `${user.PrimerApellido} ${user.SegundoApellido || ''}`.trim(),
+                    telefono: user.NumeroTelefono,
+                    direccion: user.Direccion,
+                    puntoReferencia: user.puntoReferencia
+                }
+            }
+        });
     } catch (error) {
-        return res.status(401).json({ message: 'Token inválido o expirado' });
+        console.error('Error en el login:', error);
+        res.status(500).json({ message: 'Error en el servidor' });
     }
 };
 
 // Middleware para verificar el token JWT
-exports.verifyToken = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
+const verifyToken = (req, res, next) => {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-        return res.status(401).json({ message: 'Token no proporcionado' });
+        return res.status(401).json({ message: 'Acceso denegado' });
     }
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
+        const verified = jwt.verify(token, process.env.JWT_SECRET || 'tu_secreto_jwt');
+        req.user = verified;
         next();
     } catch (error) {
-        return res.status(401).json({ message: 'Token inválido o expirado' });
+        res.status(400).json({ message: 'Token inválido' });
     }
 };
 
-// Exportar el rate limiter
-exports.loginLimiter = loginLimiter;
+module.exports = {
+    loginLimiter,
+    validateRegister,
+    validateLogin,
+    registerUser,
+    loginUser,
+    verifyToken
+};
