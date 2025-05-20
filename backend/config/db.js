@@ -1,19 +1,14 @@
 const mysql = require('mysql2');
-const cors = require('cors');
-const express = require('express');
-
-const app = express();
-app.use(cors());
-app.use(express.json());
+require('dotenv').config();
 
 // Usar un Pool de conexiones en lugar de createConnection para mayor rendimiento
 const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: 'Programacion_2003',
-    database: 'transporte',
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'transporte_db',
     waitForConnections: true,
-    connectionLimit: 10, // Número máximo de conexiones simultáneas
+    connectionLimit: 10,
     queueLimit: 0
 });
 
@@ -27,7 +22,3 @@ db.getConnection()
 
 // Exportar la conexión para usarla en otros archivos
 module.exports = db;
-
-app.listen(3001, () => {
-    console.log('Servidor backend corriendo en el puerto 3001');
-});

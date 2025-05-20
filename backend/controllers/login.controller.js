@@ -52,25 +52,35 @@ exports.registerUser = async (req, res) => {
             return res.status(400).json({ message: 'Este correo ya está registrado' });
         }
 
+        // Insertar el pasajero primero
         const [pasajeroResult] = await db.execute(
             'INSERT INTO pasajeros (BMS, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, NumeroTelefono, Direccion, puntoReferencia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [BMS, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, NumeroTelefono, Direccion, puntoReferencia]
+            [BMS, PrimerNombre, SegundoNombre || null, PrimerApellido, SegundoApellido || null, NumeroTelefono, Direccion, puntoReferencia || null]
         );
         
-        const idPasajero = pasajeroResult.insertId; // ID del pasajero recién creado
+        const idPasajero = pasajeroResult.insertId;
         
         // Encriptar la contraseña antes de guardarla
         const hashedPassword = await bcrypt.hash(Contraseña, 10);
 
+        // Insertar el login con rol por defecto
         const [loginResult] = await db.execute(
             'INSERT INTO login (CorreoEmpresarial, Contraseña, idPasajero_fk, rol) VALUES (?, ?, ?, ?)',
-            [CorreoEmpresarial, hashedPassword, idPasajero, rol || 'usuario'] // Si no viene, por defecto es 'usuario'
+            [CorreoEmpresarial, hashedPassword, idPasajero, 'usuario']
         );
         
-        res.status(201).json({ message: 'Usuario registrado correctamente', loginId: loginResult.insertId });
+        res.status(201).json({ 
+            message: 'Usuario registrado correctamente', 
+            loginId: loginResult.insertId,
+            pasajeroId: idPasajero
+        });
     } catch (error) {
-        console.error('Error en registro:', error);
-        res.status(500).json({ message: 'Error al registrar el usuario', error: error.message });
+        console.error('Error detallado en registro:', error);
+        res.status(500).json({ 
+            message: 'Error al registrar el usuario', 
+            error: error.message,
+            sqlMessage: error.sqlMessage || null
+        });
     }
 };
 
@@ -114,6 +124,23 @@ exports.loginUser = async (req, res) => {
 
         // El usuario está autenticado
         res.status(200).json({ message: 'Inicio de sesión exitoso', userId: loginData[0].idLogin });
+    } catch (error) {
+        return res.status(401).json({ message: 'Token inválido o expirado' });
+    }
+};
+
+// Middleware para verificar el token JWT
+exports.verifyToken = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ message: 'Token no proporcionado' });
+    }
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
     } catch (error) {
         return res.status(401).json({ message: 'Token inválido o expirado' });
     }
