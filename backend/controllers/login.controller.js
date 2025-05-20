@@ -1,4 +1,4 @@
-const db = require('../config/db'); // Importamos la conexión desde db.js
+const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
@@ -43,12 +43,6 @@ exports.validateLogin = [
 ];
 
 exports.registerUser = async (req, res) => {
-    // Validar los datos de entrada
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-    }
-
     const { CorreoEmpresarial, Contraseña, BMS, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, NumeroTelefono, Direccion, puntoReferencia } = req.body;
 
     try {
@@ -58,35 +52,22 @@ exports.registerUser = async (req, res) => {
             return res.status(400).json({ message: 'Este correo ya está registrado' });
         }
 
-        // Crear el pasajero primero
         const [pasajeroResult] = await db.execute(
             'INSERT INTO pasajeros (BMS, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, NumeroTelefono, Direccion, puntoReferencia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             [BMS, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, NumeroTelefono, Direccion, puntoReferencia]
         );
         
-        const idPasajero = pasajeroResult.insertId;
+        const idPasajero = pasajeroResult.insertId; // ID del pasajero recién creado
         
-        // Encriptar la contraseña
+        // Encriptar la contraseña antes de guardarla
         const hashedPassword = await bcrypt.hash(Contraseña, 10);
-        
-        // Crear el login y asociarlo con el pasajero
-        const [loginResult] = await db.execute(
-            'INSERT INTO login (CorreoEmpresarial, Contraseña, idPasajero_fk) VALUES (?, ?, ?)',
-            [CorreoEmpresarial, hashedPassword, idPasajero]
-        );
 
-        // Generar token JWT
-        const token = jwt.sign(
-            { id: loginResult.insertId, correo: CorreoEmpresarial },
-            JWT_SECRET,
-            { expiresIn: JWT_EXPIRES_IN }
+        const [loginResult] = await db.execute(
+            'INSERT INTO login (CorreoEmpresarial, Contraseña, idPasajero_fk, rol) VALUES (?, ?, ?, ?)',
+            [CorreoEmpresarial, hashedPassword, idPasajero, rol || 'usuario'] // Si no viene, por defecto es 'usuario'
         );
         
-        res.status(201).json({
-            message: 'Usuario registrado correctamente',
-            loginId: loginResult.insertId,
-            token
-        });
+        res.status(201).json({ message: 'Usuario registrado correctamente', loginId: loginResult.insertId });
     } catch (error) {
         console.error('Error en registro:', error);
         res.status(500).json({ message: 'Error al registrar el usuario', error: error.message });
@@ -103,16 +84,17 @@ exports.loginUser = async (req, res) => {
     const { CorreoEmpresarial, Contraseña } = req.body;
 
     try {
-        // Buscar el login por correo
-        const [loginData] = await db.execute('SELECT * FROM login WHERE CorreoEmpresarial = ?', [CorreoEmpresarial]);
-        
+        const [loginData] = await db.execute(
+            'SELECT * FROM login WHERE CorreoEmpresarial = ?',
+            [CorreoEmpresarial]
+        );
+
         if (loginData.length === 0) {
             return res.status(400).json({ message: 'Correo no registrado' });
         }
 
-        // Comparar la contraseña encriptada
         const isMatch = await bcrypt.compare(Contraseña, loginData[0].Contraseña);
-        
+
         if (!isMatch) {
             return res.status(400).json({ message: 'Contraseña incorrecta' });
         }
@@ -131,33 +113,7 @@ exports.loginUser = async (req, res) => {
         );
 
         // El usuario está autenticado
-        res.status(200).json({
-            message: 'Inicio de sesión exitoso',
-            token,
-            user: {
-                id: loginData[0].idLogin,
-                correo: CorreoEmpresarial,
-                pasajero: pasajeroData[0]
-            }
-        });
-    } catch (error) {
-        console.error('Error en login:', error);
-        res.status(500).json({ message: 'Error al iniciar sesión', error: error.message });
-    }
-};
-
-// Middleware para verificar el token JWT
-exports.verifyToken = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1];
-
-    if (!token) {
-        return res.status(403).json({ message: 'Token no proporcionado' });
-    }
-
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
-        next();
+        res.status(200).json({ message: 'Inicio de sesión exitoso', userId: loginData[0].idLogin });
     } catch (error) {
         return res.status(401).json({ message: 'Token inválido o expirado' });
     }
