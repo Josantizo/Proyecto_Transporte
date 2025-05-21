@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import './Register.css';
 
@@ -77,7 +77,7 @@ const Register = () => {
 
         setLoading(true);
         try {
-            const response = await axios.post('http://localhost:3000/api/auth/register', formData);
+            const response = await axios.post('http://localhost:3001/api/login/register', formData);
             console.log('Registro exitoso:', response.data);
             // Mostrar mensaje de éxito
             setErrorMessage('');
@@ -234,6 +234,9 @@ const Register = () => {
                         {loading ? 'Registrando...' : 'Registrarse'}
                     </button>
                 </form>
+                <div className="login-link">
+                    <p>¿Ya tienes usuario? <Link to="/login">Inicia sesión</Link></p>
+                </div>
             </div>
         </div>
     );

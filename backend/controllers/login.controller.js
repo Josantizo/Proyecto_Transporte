@@ -94,12 +94,15 @@ const loginUser = async (req, res) => {
         }
 
         const { CorreoEmpresarial, Contraseña } = req.body;
+        console.log('Login attempt for:', CorreoEmpresarial);
 
         // Buscar el usuario en la tabla login
         const [loginData] = await db.query(
             'SELECT l.*, p.* FROM login l JOIN pasajeros p ON l.idPasajero_fk = p.idPasajero WHERE l.CorreoEmpresarial = ?',
             [CorreoEmpresarial]
         );
+
+        console.log('Login query result:', loginData);
 
         if (loginData.length === 0) {
             return res.status(400).json({ message: 'Credenciales inválidas' });
@@ -124,6 +127,12 @@ const loginUser = async (req, res) => {
             { expiresIn: '24h' }
         );
 
+        console.log('Generated token payload:', { 
+            id: user.idLogin, 
+            email: user.CorreoEmpresarial,
+            rol: user.rol
+        });
+
         res.json({
             token,
             user: {
@@ -142,7 +151,7 @@ const loginUser = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error en el login:', error);
+        console.error('Login error:', error);
         res.status(500).json({ message: 'Error en el servidor' });
     }
 };

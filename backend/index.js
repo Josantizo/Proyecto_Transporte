@@ -11,7 +11,8 @@ console.log('Middleware básico configurado');
 
 // Importar las rutas
 const loginRoutes = require('./routes/login.rutas');
-console.log('Rutas de login importadas');
+const profileRoutes = require('./routes/profile.rutas');
+console.log('Rutas importadas');
 
 // Middleware para logging
 app.use((req, res, next) => {
@@ -25,9 +26,10 @@ app.get('/test', (req, res) => {
     res.json({ message: 'Servidor funcionando' });
 });
 
-// Configurar las rutas de login
+// Configurar las rutas
 app.use('/api/login', loginRoutes);
-console.log('Rutas de login configuradas');
+app.use('/api/profile', profileRoutes);
+console.log('Rutas configuradas');
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
@@ -49,5 +51,7 @@ app.listen(PORT, () => {
     console.log('- POST /api/login');
     console.log('- POST /api/login/register');
     console.log('- GET /api/login/profile');
+    console.log('- PUT /api/login/update-password');
+    console.log('- PUT /api/login/update-profile');
     console.log('=================================');
 });
