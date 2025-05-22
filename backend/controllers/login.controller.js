@@ -19,8 +19,7 @@ const validateRegister = [
     body('PrimerNombre').notEmpty().withMessage('El primer nombre es requerido'),
     body('PrimerApellido').notEmpty().withMessage('El primer apellido es requerido'),
     body('NumeroTelefono').notEmpty().withMessage('El número de teléfono es requerido'),
-    body('Direccion').notEmpty().withMessage('La dirección es requerida'),
-    body('puntoReferencia').notEmpty().withMessage('El punto de referencia es requerido')
+    body('Direccion').notEmpty().withMessage('La dirección es requerida')
 ];
 
 // Middleware para validar el login
@@ -46,8 +45,7 @@ const registerUser = async (req, res) => {
             PrimerApellido, 
             SegundoApellido, 
             NumeroTelefono, 
-            Direccion, 
-            puntoReferencia 
+            Direccion
         } = req.body;
 
         // Verificar si el correo ya está registrado
@@ -58,8 +56,8 @@ const registerUser = async (req, res) => {
 
         // Insertar el pasajero primero
         const [pasajeroResult] = await db.query(
-            'INSERT INTO pasajeros (BMS, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, NumeroTelefono, Direccion, puntoReferencia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [BMS, PrimerNombre, SegundoNombre || null, PrimerApellido, SegundoApellido || null, NumeroTelefono, Direccion, puntoReferencia]
+            'INSERT INTO pasajeros (BMS, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, NumeroTelefono, Direccion) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [BMS, PrimerNombre, SegundoNombre || null, PrimerApellido, SegundoApellido || null, NumeroTelefono, Direccion]
         );
         
         const idPasajero = pasajeroResult.insertId;
@@ -81,57 +79,58 @@ const registerUser = async (req, res) => {
         });
     } catch (error) {
         console.error('Error en el registro:', error);
-        res.status(500).json({ message: 'Error en el servidor' });
+        res.status(500).json({ message: 'Error en el servidor', error: error.message });
     }
 };
 
 // Función para iniciar sesión
 const loginUser = async (req, res) => {
     try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
         const { CorreoEmpresarial, Contraseña } = req.body;
-        console.log('Login attempt for:', CorreoEmpresarial);
 
-        // Buscar el usuario en la tabla login
-        const [loginData] = await db.query(
-            'SELECT l.*, p.* FROM login l JOIN pasajeros p ON l.idPasajero_fk = p.idPasajero WHERE l.CorreoEmpresarial = ?',
+        console.log('Login attempt for email:', CorreoEmpresarial);
+
+        // Obtener usuario
+        const [users] = await db.query(
+            `SELECT l.*, p.* 
+            FROM login l 
+            JOIN pasajeros p ON l.idPasajero_fk = p.idPasajero 
+            WHERE l.CorreoEmpresarial = ?`,
             [CorreoEmpresarial]
         );
 
-        console.log('Login query result:', loginData);
+        console.log('Query result:', users);
 
-        if (loginData.length === 0) {
-            return res.status(400).json({ message: 'Credenciales inválidas' });
+        if (!users || users.length === 0) {
+            console.log('No user found with email:', CorreoEmpresarial);
+            return res.status(401).json({ message: 'Credenciales inválidas' });
         }
 
-        const user = loginData[0];
+        const user = users[0];
+        console.log('Found user:', user);
 
-        // Verificar la contraseña
-        const validPassword = await bcrypt.compare(Contraseña, user.Contraseña);
-        if (!validPassword) {
-            return res.status(400).json({ message: 'Credenciales inválidas' });
+        // Verificar contraseña
+        const isValidPassword = await bcrypt.compare(Contraseña, user.Contraseña);
+        if (!isValidPassword) {
+            console.log('Invalid password for user:', CorreoEmpresarial);
+            return res.status(401).json({ message: 'Credenciales inválidas' });
         }
 
-        // Generar el token JWT
-        const token = jwt.sign(
-            { 
-                id: user.idLogin, 
-                email: user.CorreoEmpresarial,
-                rol: user.rol
-            },
-            process.env.JWT_SECRET || 'tu_secreto_jwt',
-            { expiresIn: '24h' }
-        );
-
-        console.log('Generated token payload:', { 
-            id: user.idLogin, 
+        // Generar token
+        const tokenPayload = {
+            id: user.idLogin,
             email: user.CorreoEmpresarial,
-            rol: user.rol
+            rol: user.rol,
+            pasajeroId: user.idPasajero
+        };
+
+        console.log('Generating token with payload:', tokenPayload);
+
+        const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
+            expiresIn: '24h'
         });
+
+        console.log('Generated token:', token);
 
         res.json({
             token,
@@ -145,13 +144,13 @@ const loginUser = async (req, res) => {
                     nombre: `${user.PrimerNombre} ${user.SegundoNombre || ''}`.trim(),
                     apellido: `${user.PrimerApellido} ${user.SegundoApellido || ''}`.trim(),
                     telefono: user.NumeroTelefono,
-                    direccion: user.Direccion,
-                    puntoReferencia: user.puntoReferencia
+                    direccion: user.Direccion
                 }
             }
         });
     } catch (error) {
         console.error('Login error:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({ message: 'Error en el servidor' });
     }
 };

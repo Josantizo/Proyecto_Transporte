@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Map from '../components/Map';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -107,13 +108,11 @@ const Dashboard = () => {
             const token = localStorage.getItem('token');
             console.log('Sending update with data:', {
                 Direccion: userData.Direccion,
-                puntoReferencia: userData.puntoReferencia,
                 NumeroTelefono: userData.NumeroTelefono
             });
 
             const response = await axios.put('http://localhost:3001/api/profile/update-profile', {
                 Direccion: userData.Direccion,
-                puntoReferencia: userData.puntoReferencia,
                 NumeroTelefono: userData.NumeroTelefono
             }, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -199,18 +198,10 @@ const Dashboard = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Punto de Referencia Actual</label>
-                        <input
-                            type="text"
-                            value={userData.puntoReferencia || 'No hay punto de referencia registrado'}
-                            onChange={(e) => setUserData({...userData, puntoReferencia: e.target.value})}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Número de Teléfono Actual</label>
+                        <label>Número de Teléfono</label>
                         <input
                             type="tel"
-                            value={userData.NumeroTelefono || 'No hay número de teléfono registrado'}
+                            value={userData.NumeroTelefono || 'No hay número registrado'}
                             onChange={(e) => setUserData({...userData, NumeroTelefono: e.target.value})}
                             required
                         />
@@ -219,6 +210,12 @@ const Dashboard = () => {
                         {loading ? 'Actualizando...' : 'Actualizar Perfil'}
                     </button>
                 </form>
+            </div>
+
+            <div className="map-section">
+                <h3>Mapa de Cobertura</h3>
+                <p>Selecciona un punto en el mapa para ver la cobertura de transporte disponible.</p>
+                <Map />
             </div>
         </div>
     );

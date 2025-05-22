@@ -14,8 +14,7 @@ const Register = () => {
         PrimerApellido: '',
         SegundoApellido: '',
         NumeroTelefono: '',
-        Direccion: '',
-        puntoReferencia: ''
+        Direccion: ''
     });
 
     const [errors, setErrors] = useState({});
@@ -85,11 +84,20 @@ const Register = () => {
             navigate('/login');
         } catch (error) {
             console.error('Error en el registro:', error);
-            setErrorMessage(
-                error.response?.data?.message || 
-                error.response?.data?.error ||
-                'Error al registrar el usuario. Por favor, intente nuevamente.'
-            );
+            if (error.response?.data?.errors) {
+                // Si hay errores de validación del backend
+                const backendErrors = {};
+                error.response.data.errors.forEach(err => {
+                    backendErrors[err.param] = err.msg;
+                });
+                setErrors(backendErrors);
+            } else {
+                setErrorMessage(
+                    error.response?.data?.message || 
+                    error.response?.data?.error ||
+                    'Error al registrar el usuario. Por favor, intente nuevamente.'
+                );
+            }
         } finally {
             setLoading(false);
         }
@@ -217,17 +225,6 @@ const Register = () => {
                             className={errors.Direccion ? 'error' : ''}
                         />
                         {errors.Direccion && <span className="error-text">{errors.Direccion}</span>}
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="puntoReferencia">Punto de Referencia</label>
-                        <input
-                            type="text"
-                            id="puntoReferencia"
-                            name="puntoReferencia"
-                            value={formData.puntoReferencia}
-                            onChange={handleChange}
-                        />
                     </div>
 
                     <button type="submit" className="submit-button" disabled={loading}>

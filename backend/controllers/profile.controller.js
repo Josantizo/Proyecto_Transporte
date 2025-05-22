@@ -3,22 +3,37 @@ const bcrypt = require('bcryptjs');
 
 const getProfile = async (req, res) => {
     try {
-        console.log('User ID from token:', req.user.id);
+        console.log('User data from token:', req.user);
         
-        const [rows] = await db.query(
-            'SELECT l.CorreoEmpresarial, p.Direccion, p.puntoReferencia, p.NumeroTelefono, l.ultimaActualizacionPassword FROM login l JOIN pasajeros p ON l.idPasajero_fk = p.idPasajero WHERE l.idLogin = ?',
-            [req.user.id]
-        );
+        // Verificar que req.user.pasajeroId existe
+        if (!req.user.pasajeroId) {
+            console.error('No pasajeroId found in token');
+            return res.status(400).json({ message: 'Token inválido: no contiene ID de pasajero' });
+        }
+
+        const query = `
+            SELECT l.CorreoEmpresarial, p.Direccion, p.NumeroTelefono, l.ultimaActualizacionPassword 
+            FROM login l 
+            JOIN pasajeros p ON l.idPasajero_fk = p.idPasajero 
+            WHERE p.idPasajero = ?
+        `;
+        
+        console.log('Executing query:', query);
+        console.log('With params:', [req.user.pasajeroId]);
+
+        const [rows] = await db.query(query, [req.user.pasajeroId]);
 
         console.log('Query result:', rows);
 
         if (!rows || rows.length === 0) {
+            console.log('No user found with ID:', req.user.pasajeroId);
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
         res.json(rows[0]);
     } catch (error) {
         console.error('Error al obtener perfil:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({ message: 'Error al obtener el perfil' });
     }
 };
@@ -29,22 +44,22 @@ const updatePassword = async (req, res) => {
     try {
         // Obtener usuario actual
         const [user] = await db.query(
-            'SELECT Contraseña, ultimaActualizacionPassword FROM login WHERE id = ?',
-            [req.user.id]
+            'SELECT l.Contraseña, l.ultimaActualizacionPassword FROM login l JOIN pasajeros p ON l.idPasajero_fk = p.idPasajero WHERE p.idPasajero = ?',
+            [req.user.pasajeroId]
         );
 
-        if (!user) {
+        if (!user || user.length === 0) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
         // Verificar contraseña actual
-        const isValidPassword = await bcrypt.compare(contraseñaActual, user.Contraseña);
+        const isValidPassword = await bcrypt.compare(contraseñaActual, user[0].Contraseña);
         if (!isValidPassword) {
             return res.status(400).json({ message: 'Contraseña actual incorrecta' });
         }
 
         // Verificar si han pasado 3 meses desde la última actualización
-        const ultimaActualizacion = new Date(user.ultimaActualizacionPassword);
+        const ultimaActualizacion = new Date(user[0].ultimaActualizacionPassword);
         const tresMesesAtras = new Date();
         tresMesesAtras.setMonth(tresMesesAtras.getMonth() - 3);
 
@@ -60,8 +75,8 @@ const updatePassword = async (req, res) => {
 
         // Actualizar contraseña
         await db.query(
-            'UPDATE login SET Contraseña = ?, ultimaActualizacionPassword = NOW() WHERE id = ?',
-            [hashedPassword, req.user.id]
+            'UPDATE login l JOIN pasajeros p ON l.idPasajero_fk = p.idPasajero SET l.Contraseña = ?, l.ultimaActualizacionPassword = NOW() WHERE p.idPasajero = ?',
+            [hashedPassword, req.user.pasajeroId]
         );
 
         res.json({ message: 'Contraseña actualizada exitosamente' });
@@ -72,30 +87,16 @@ const updatePassword = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-    const { Direccion, puntoReferencia, NumeroTelefono } = req.body;
+    const { Direccion, NumeroTelefono } = req.body;
 
     try {
-        console.log('Updating profile for user ID:', req.user.id);
-        console.log('Update data:', { Direccion, puntoReferencia, NumeroTelefono });
-
-        // Primero obtenemos el idPasajero_fk del usuario
-        const [loginData] = await db.query(
-            'SELECT idPasajero_fk FROM login WHERE idLogin = ?',
-            [req.user.id]
-        );
-
-        console.log('Login data:', loginData);
-
-        if (!loginData || loginData.length === 0) {
-            return res.status(404).json({ message: 'Usuario no encontrado' });
-        }
-
-        const idPasajero = loginData[0].idPasajero_fk;
+        console.log('Updating profile for user ID:', req.user.pasajeroId);
+        console.log('Update data:', { Direccion, NumeroTelefono });
 
         // Actualizamos los datos en la tabla pasajeros
         const [result] = await db.query(
-            'UPDATE pasajeros SET Direccion = ?, puntoReferencia = ?, NumeroTelefono = ? WHERE idPasajero = ?',
-            [Direccion, puntoReferencia, NumeroTelefono, idPasajero]
+            'UPDATE pasajeros SET Direccion = ?, NumeroTelefono = ? WHERE idPasajero = ?',
+            [Direccion, NumeroTelefono, req.user.pasajeroId]
         );
 
         console.log('Update result:', result);

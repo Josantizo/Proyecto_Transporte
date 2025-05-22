@@ -117,4 +117,23 @@ button[type="submit"]:disabled {
     .profile-update-section {
         padding: 1.5rem;
     }
+}
+
+.map-section {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.map-section h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.map-section p {
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 14px;
 } 
