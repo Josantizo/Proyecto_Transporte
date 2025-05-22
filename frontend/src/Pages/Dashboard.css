@@ -16,20 +16,6 @@
     margin: 0;
 }
 
-.logout-button {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.logout-button:hover {
-    background-color: #c82333;
-}
-
 .password-update-section,
 .profile-update-section {
     background-color: white;

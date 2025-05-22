@@ -64,29 +64,49 @@ const Transport = () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
+            console.log('Sending request with data:', {
+                ...transportData,
+                horaEntrada: fechaHoraEntrada.toISOString(),
+                horaSalida: fechaHoraSalida.toISOString()
+            });
+
             const response = await axios.post('http://localhost:3001/api/transport/create', {
                 ...transportData,
                 horaEntrada: fechaHoraEntrada.toISOString(),
                 horaSalida: fechaHoraSalida.toISOString()
             }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            setSuccessMessage('Solicitud de transporte creada exitosamente');
-            setTransportData({
-                horaEntrada: '',
-                horaSalida: '',
-                puntoReferencia: '',
-                fechaSolicitud: '',
-                direccionAlternativa: '',
-                usarDireccionAlternativa: false,
-                coordenadas: {
-                    lat: null,
-                    lng: null
+                headers: { 
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             });
+
+            console.log('Server response:', response.data);
+
+            if (response.data.success) {
+                setSuccessMessage(response.data.message || 'Solicitud de transporte creada exitosamente');
+                setTransportData({
+                    horaEntrada: '',
+                    horaSalida: '',
+                    puntoReferencia: '',
+                    fechaSolicitud: '',
+                    direccionAlternativa: '',
+                    usarDireccionAlternativa: false,
+                    coordenadas: {
+                        lat: null,
+                        lng: null
+                    }
+                });
+            } else {
+                setErrorMessage(response.data.message || 'Error al crear la solicitud de transporte');
+            }
         } catch (error) {
-            setErrorMessage(error.response?.data?.message || 'Error al crear la solicitud de transporte');
+            console.error('Error creating transport request:', error);
+            setErrorMessage(
+                error.response?.data?.message || 
+                error.response?.data?.error || 
+                'Error al crear la solicitud de transporte'
+            );
         } finally {
             setLoading(false);
         }

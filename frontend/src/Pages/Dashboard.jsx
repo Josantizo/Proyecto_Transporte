@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import Map from '../components/Map';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -131,16 +130,10 @@ const Dashboard = () => {
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        navigate('/login');
-    };
-
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
                 <h2>Panel de Control</h2>
-                <button onClick={handleLogout} className="logout-button">Cerrar Sesión</button>
             </div>
 
             {errorMessage && <div className="error-message">{errorMessage}</div>}
@@ -152,27 +145,30 @@ const Dashboard = () => {
                     <p>Por seguridad, debes actualizar tu contraseña cada 3 meses.</p>
                     <form onSubmit={handlePasswordChange}>
                         <div className="form-group">
-                            <label>Contraseña Actual</label>
+                            <label htmlFor="contraseñaActual">Contraseña Actual</label>
                             <input
                                 type="password"
+                                id="contraseñaActual"
                                 value={passwordData.contraseñaActual}
                                 onChange={(e) => setPasswordData({...passwordData, contraseñaActual: e.target.value})}
                                 required
                             />
                         </div>
                         <div className="form-group">
-                            <label>Nueva Contraseña</label>
+                            <label htmlFor="nuevaContraseña">Nueva Contraseña</label>
                             <input
                                 type="password"
+                                id="nuevaContraseña"
                                 value={passwordData.nuevaContraseña}
                                 onChange={(e) => setPasswordData({...passwordData, nuevaContraseña: e.target.value})}
                                 required
                             />
                         </div>
                         <div className="form-group">
-                            <label>Confirmar Nueva Contraseña</label>
+                            <label htmlFor="confirmarContraseña">Confirmar Nueva Contraseña</label>
                             <input
                                 type="password"
+                                id="confirmarContraseña"
                                 value={passwordData.confirmarContraseña}
                                 onChange={(e) => setPasswordData({...passwordData, confirmarContraseña: e.target.value})}
                                 required
@@ -186,22 +182,33 @@ const Dashboard = () => {
             )}
 
             <div className="profile-update-section">
-                <h3>Actualizar Información Personal</h3>
+                <h3>Actualizar Perfil</h3>
                 <form onSubmit={handleProfileUpdate}>
                     <div className="form-group">
-                        <label>Dirección Actual</label>
+                        <label htmlFor="CorreoEmpresarial">Correo Empresarial</label>
+                        <input
+                            type="email"
+                            id="CorreoEmpresarial"
+                            value={userData.CorreoEmpresarial}
+                            disabled
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="Direccion">Dirección</label>
                         <input
                             type="text"
-                            value={userData.Direccion || 'No hay dirección registrada'}
+                            id="Direccion"
+                            value={userData.Direccion}
                             onChange={(e) => setUserData({...userData, Direccion: e.target.value})}
                             required
                         />
                     </div>
                     <div className="form-group">
-                        <label>Número de Teléfono</label>
+                        <label htmlFor="NumeroTelefono">Número de Teléfono</label>
                         <input
                             type="tel"
-                            value={userData.NumeroTelefono || 'No hay número registrado'}
+                            id="NumeroTelefono"
+                            value={userData.NumeroTelefono}
                             onChange={(e) => setUserData({...userData, NumeroTelefono: e.target.value})}
                             required
                         />
@@ -210,12 +217,6 @@ const Dashboard = () => {
                         {loading ? 'Actualizando...' : 'Actualizar Perfil'}
                     </button>
                 </form>
-            </div>
-
-            <div className="map-section">
-                <h3>Mapa de Cobertura</h3>
-                <p>Selecciona un punto en el mapa para ver la cobertura de transporte disponible.</p>
-                <Map />
             </div>
         </div>
     );

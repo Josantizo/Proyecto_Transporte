@@ -5,7 +5,8 @@ import Login from './Pages/Login';
 import Dashboard from './Pages/Dashboard';
 import Transport from './Pages/Transport';
 import SolicitarTransporte from './Pages/SolicitarTransporte';
-import Navigation from './components/Navigation';
+import TransportRequests from './Pages/TransportRequests';
+import Sidebar from './components/Sidebar';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -21,10 +22,12 @@ function App() {
             path="/dashboard" 
             element={
               <ProtectedRoute>
-                <>
-                  <Navigation />
-                  <Dashboard />
-                </>
+                <div className="app-layout">
+                  <Sidebar />
+                  <main className="main-content">
+                    <Dashboard />
+                  </main>
+                </div>
               </ProtectedRoute>
             } 
           />
@@ -32,10 +35,12 @@ function App() {
             path="/transport" 
             element={
               <ProtectedRoute>
-                <>
-                  <Navigation />
-                  <Transport />
-                </>
+                <div className="app-layout">
+                  <Sidebar />
+                  <main className="main-content">
+                    <Transport />
+                  </main>
+                </div>
               </ProtectedRoute>
             } 
           />
@@ -43,10 +48,25 @@ function App() {
             path="/solicitar-transporte" 
             element={
               <ProtectedRoute>
-                <>
-                  <Navigation />
-                  <SolicitarTransporte />
-                </>
+                <div className="app-layout">
+                  <Sidebar />
+                  <main className="main-content">
+                    <SolicitarTransporte />
+                  </main>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/mis-solicitudes" 
+            element={
+              <ProtectedRoute>
+                <div className="app-layout">
+                  <Sidebar />
+                  <main className="main-content">
+                    <TransportRequests />
+                  </main>
+                </div>
               </ProtectedRoute>
             } 
           />
