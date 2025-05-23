@@ -68,7 +68,7 @@ const getTransportRequests = async (req, res) => {
             params.push(`%${agent}%`, `%${agent}%`, `%${agent}%`, `%${agent}%`);
         }
         if (lob) {
-            query += ' AND gt.LOB = ?';
+            query += ' AND p.LOB = ?';
             params.push(lob);
         }
         if (schedule) {
@@ -95,9 +95,11 @@ const getTransportRequests = async (req, res) => {
 
         const [requests] = await db.query(query, params);
         console.log('Query result count:', requests.length);
+        console.log('First request (if any):', requests[0]);
 
         // Si no hay resultados, devolver un array vacío con un mensaje
         if (requests.length === 0) {
+            console.log('No requests found in database');
             return res.json({
                 message: 'No se encontraron solicitudes de transporte',
                 data: []
@@ -105,12 +107,17 @@ const getTransportRequests = async (req, res) => {
         }
 
         // Transformar los datos para el frontend
-        const transformedRequests = requests.map(request => ({
-            ...request,
-            FechaSolicitud: request.FechaSolicitud ? new Date(request.FechaSolicitud).toISOString() : null,
-            HoraEntrada: request.HoraEntrada ? new Date(request.HoraEntrada).toISOString() : null,
-            HoraSalida: request.HoraSalida ? new Date(request.HoraSalida).toISOString() : null
-        }));
+        const transformedRequests = requests.map(request => {
+            console.log('Processing request:', request);
+            return {
+                ...request,
+                FechaSolicitud: request.FechaSolicitud ? new Date(request.FechaSolicitud).toISOString() : null,
+                HoraEntrada: request.HoraEntrada ? new Date(request.HoraEntrada).toISOString() : null,
+                HoraSalida: request.HoraSalida ? new Date(request.HoraSalida).toISOString() : null
+            };
+        });
+
+        console.log('Transformed requests:', transformedRequests);
 
         res.json({
             message: 'Solicitudes obtenidas exitosamente',
@@ -118,6 +125,23 @@ const getTransportRequests = async (req, res) => {
         });
     } catch (error) {
         console.error('Error al obtener solicitudes:', error);
+        console.error('Error stack:', error.stack);
+        
+        // Manejar errores específicos de la base de datos
+        if (error.code === 'ECONNREFUSED') {
+            return res.status(500).json({ 
+                message: 'Error de conexión con la base de datos',
+                error: 'No se pudo conectar al servidor de base de datos'
+            });
+        }
+        
+        if (error.code === 'ER_NO_SUCH_TABLE') {
+            return res.status(500).json({ 
+                message: 'Error en la estructura de la base de datos',
+                error: 'Una o más tablas necesarias no existen'
+            });
+        }
+
         res.status(500).json({ 
             message: 'Error al obtener las solicitudes de transporte',
             error: error.message,

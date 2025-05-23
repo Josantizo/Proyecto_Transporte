@@ -25,12 +25,16 @@ const auth = (req, res, next) => {
             console.error('Token does not contain pasajeroId');
             return res.status(401).json({ message: 'Invalid token structure' });
         }
-        
+
+        // Permitir acceso a cualquier usuario autenticado (admin o no)
         req.user = decoded;
         next();
     } catch (error) {
         console.error('Token verification error:', error);
         console.error('Error stack:', error.stack);
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ message: 'Token expired' });
+        }
         res.status(401).json({ message: 'Invalid token' });
     }
 };

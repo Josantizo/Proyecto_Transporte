@@ -44,7 +44,12 @@ const Dashboard = () => {
             });
             console.log('Profile response:', response.data);
             
-            setUserData(response.data);
+            setUserData({
+                CorreoEmpresarial: response.data.CorreoEmpresarial || response.data.correo || response.data.email || '',
+                Direccion: response.data.Direccion || response.data.direccion || '',
+                NumeroTelefono: response.data.NumeroTelefono || response.data.numeroTelefono || '',
+                ultimaActualizacionPassword: response.data.ultimaActualizacionPassword || null
+            });
             
             // Verificar si es necesario actualizar la contraseña
             const ultimaActualizacion = new Date(response.data.ultimaActualizacionPassword);
@@ -106,11 +111,13 @@ const Dashboard = () => {
             setLoading(true);
             const token = localStorage.getItem('token');
             console.log('Sending update with data:', {
+                CorreoEmpresarial: userData.CorreoEmpresarial,
                 Direccion: userData.Direccion,
                 NumeroTelefono: userData.NumeroTelefono
             });
 
             const response = await axios.put('http://localhost:3001/api/profile/update-profile', {
+                CorreoEmpresarial: userData.CorreoEmpresarial,
                 Direccion: userData.Direccion,
                 NumeroTelefono: userData.NumeroTelefono
             }, {
@@ -119,7 +126,6 @@ const Dashboard = () => {
 
             console.log('Update response:', response.data);
             setSuccessMessage('Perfil actualizado exitosamente');
-            
             // Recargar los datos del perfil después de la actualización
             await fetchUserData();
         } catch (error) {

@@ -1,3 +1,16 @@
+:root {
+  --color-main: #a81d7d;
+  --color-secondary: #6d207d;
+  --color-bg: #ffffff;
+  --color-text: #222;
+  --color-text-inverse: #fff;
+  --color-border: #e5e5e5;
+}
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
 .App {
   min-height: 100vh;
   background-color: #f8f9fa;
@@ -64,4 +77,44 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+button,
+input[type="submit"],
+.submit-button,
+.action-btn,
+.cancel-button,
+.bg-blue-600,
+.accept-button,
+.reject-button {
+  background: var(--color-main) !important;
+  color: var(--color-text-inverse) !important;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: none;
+}
+button:hover,
+input[type="submit"]:hover,
+.submit-button:hover,
+.action-btn:hover,
+.cancel-button:hover,
+.bg-blue-600:hover,
+.accept-button:hover,
+.reject-button:hover {
+  background: var(--color-secondary) !important;
+  color: var(--color-text-inverse) !important;
+}
+button:disabled,
+input[type="submit"]:disabled,
+.submit-button:disabled,
+.action-btn:disabled,
+.cancel-button:disabled,
+.bg-blue-600:disabled,
+.accept-button:disabled,
+.reject-button:disabled {
+  background: #ccc !important;
+  color: #fff !important;
+  cursor: not-allowed;
 }

@@ -30,6 +30,28 @@ CREATE TABLE `sequences` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+DELIMITER //
+CREATE FUNCTION nextval(seq_name VARCHAR(50))
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE current_val INT;
+    
+    -- Get the current value and increment
+    SELECT current_value, increment INTO @current_val, @increment
+    FROM sequences
+    WHERE name = seq_name
+    FOR UPDATE;
+    
+    -- Update the sequence
+    UPDATE sequences
+    SET current_value = current_value + increment
+    WHERE name = seq_name;
+    
+    RETURN @current_val;
+END //
+DELIMITER ;
+
 --
 -- Dumping data for table `sequences`
 --

@@ -9,12 +9,10 @@ const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [filters, setFilters] = useState({
-        agent: '',
+        usuario: '',
         lob: '',
         status: '',
-        startDate: '',
-        endDate: '',
-        schedule: ''
+        fecha: ''
     });
 
     useEffect(() => {
@@ -31,27 +29,68 @@ const AdminDashboard = () => {
             setLoading(true);
             setError('');
             const queryParams = new URLSearchParams();
-            if (filters.agent) queryParams.append('agent', filters.agent);
+            if (filters.usuario) queryParams.append('agent', filters.usuario);
             if (filters.lob) queryParams.append('lob', filters.lob);
             if (filters.status) queryParams.append('status', filters.status);
-            if (filters.startDate) queryParams.append('startDate', filters.startDate);
-            if (filters.endDate) queryParams.append('endDate', filters.endDate);
-            if (filters.schedule) queryParams.append('schedule', filters.schedule);
+            if (filters.fecha) queryParams.append('startDate', filters.fecha);
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setError('No hay sesión activa');
+                navigate('/login');
+                return;
+            }
+
             const response = await axios.get(
                 `http://localhost:3001/api/admin/transport-requests?${queryParams.toString()}`,
                 {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                        Authorization: `Bearer ${token}`
                     }
                 }
             );
+
+            console.log('Response from server:', response.data);
+
+            if (response.data.error) {
+                setError(response.data.error);
+                setTransportRequests([]);
+                return;
+            }
+
             const requests = Array.isArray(response.data.data) ? response.data.data : [];
-            setTransportRequests(requests);
+            console.log('Raw requests data:', requests);
+
+            // Procesar las fechas y horas
+            const processedRequests = requests.map(request => {
+                console.log('Processing request:', request);
+                return {
+                    ...request,
+                    FechaSolicitud: request.FechaSolicitud ? new Date(request.FechaSolicitud).toLocaleDateString() : null,
+                    HoraEntrada: request.HoraEntrada ? new Date(request.HoraEntrada).toLocaleTimeString() : null,
+                    HoraSalida: request.HoraSalida ? new Date(request.HoraSalida).toLocaleTimeString() : null
+                };
+            });
+
+            console.log('Processed requests:', processedRequests);
+            setTransportRequests(processedRequests);
+            
             if (response.data.message) {
-                setError(response.data.message);
+                console.log('Setting message:', response.data.message);
             }
         } catch (error) {
-            setError(error.response?.data?.message || 'Error al cargar las solicitudes de transporte');
+            console.error('Error fetching requests:', error);
+            if (error.response?.status === 401) {
+                setError('Sesión expirada. Por favor, inicie sesión nuevamente.');
+                localStorage.removeItem('token');
+                localStorage.removeItem('rol');
+                navigate('/login');
+            } else if (error.response?.status === 403) {
+                setError('No tiene permisos para acceder a esta página.');
+                navigate('/dashboard');
+            } else {
+                setError(error.response?.data?.message || 'Error al cargar las solicitudes de transporte');
+            }
             setTransportRequests([]);
         } finally {
             setLoading(false);
@@ -113,8 +152,8 @@ const AdminDashboard = () => {
             <h1 className="text-2xl font-bold text-gray-800 mb-6">Panel de Administración</h1>
             <div className="filters mb-4 flex flex-wrap gap-4">
                 <div>
-                    <label htmlFor="agent">Agente:</label>
-                    <select name="agent" id="agent" value={filters.agent} onChange={handleFilterChange} className="filter-select">
+                    <label htmlFor="usuario">Usuario:</label>
+                    <select name="usuario" id="usuario" value={filters.usuario} onChange={handleFilterChange} className="filter-select">
                         <option value="">Todos</option>
                         {uniqueAgents.map(agent => (
                             <option key={agent} value={agent}>{agent}</option>
@@ -131,6 +170,27 @@ const AdminDashboard = () => {
                         <option value="cancelado">Cancelado</option>
                     </select>
                 </div>
+                <div>
+                    <label htmlFor="fecha">Fecha:</label>
+                    <input
+                        type="date"
+                        name="fecha"
+                        id="fecha"
+                        value={filters.fecha}
+                        onChange={handleFilterChange}
+                        className="filter-select"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="lob">LOB:</label>
+                    <select name="lob" id="lob" value={filters.lob} onChange={handleFilterChange} className="filter-select">
+                        <option value="">Todos</option>
+                        <option value="COX Billing">COX Billing</option>
+                        <option value="COX Tech Support">COX Tech Support</option>
+                        <option value="Centene">Centene</option>
+                        <option value="Gusto">Gusto</option>
+                    </select>
+                </div>
             </div>
             {loading ? (
                 <div className="text-center">
@@ -144,45 +204,65 @@ const AdminDashboard = () => {
                     <p className="text-gray-600">No hay solicitudes de transporte.</p>
                 </div>
             ) : (
-                <div className="requests-table overflow-x-auto">
-                    <table className="min-w-full bg-white rounded-lg shadow-md">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Agente</th>
-                                <th>Fecha</th>
-                                <th>Estado</th>
-                                <th>Hora Entrada</th>
-                                <th>Hora Salida</th>
-                                <th>Punto de Referencia</th>
-                                <th>Dirección Alternativa</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {transportRequests.map(request => (
-                                <tr key={request.idGenerarTransporte}>
-                                    <td>{request.idGenerarTransporte}</td>
-                                    <td>{request.CorreoEmpresarial || request.Correo || request.email}</td>
-                                    <td>{new Date(request.FechaSolicitud).toLocaleDateString()}</td>
-                                    <td><span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(request.estado)}`}>{getStatusMessage(request.estado)}</span></td>
-                                    <td>{request.HoraEntrada}</td>
-                                    <td>{request.HoraSalida}</td>
-                                    <td>{request.PuntoReferencia}</td>
-                                    <td>{request.DireccionAlternativa || '-'}</td>
-                                    <td>
-                                        {request.estado?.toLowerCase() === 'en proceso' && (
-                                            <>
-                                                <button onClick={() => handleStatusChange(request.idGenerarTransporte, 'aceptado')} className="action-btn accept">Aceptar</button>
-                                                <button onClick={() => handleStatusChange(request.idGenerarTransporte, 'rechazado')} className="action-btn reject">Rechazar</button>
-                                            </>
-                                        )}
-                                    </td>
+                <>
+                    <div className="requests-table overflow-x-auto">
+                        <table className="min-w-full bg-white rounded-lg shadow-md">
+                            <thead>
+                                <tr>
+                                    <th>Agente</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>Hora Entrada</th>
+                                    <th>Hora Salida</th>
+                                    <th>Punto de Referencia</th>
+                                    <th>Dirección Alternativa</th>
+                                    <th>Acciones</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {transportRequests.map(request => {
+                                    console.log('Rendering request:', request);
+                                    return (
+                                        <tr key={request.idGenerarTransporte}>
+                                            <td>{request.CorreoEmpresarial || request.Correo || request.email}</td>
+                                            <td>{request.FechaSolicitud}</td>
+                                            <td>
+                                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(request.estado)}`}>
+                                                    {getStatusMessage(request.estado)}
+                                                </span>
+                                            </td>
+                                            <td>{request.HoraEntrada}</td>
+                                            <td>{request.HoraSalida}</td>
+                                            <td>{request.PuntoReferencia}</td>
+                                            <td>{request.DireccionAlternativa || '-'}</td>
+                                            <td>
+                                                {request.estado?.toLowerCase() === 'en proceso' && (
+                                                    <>
+                                                        <button 
+                                                            onClick={() => handleStatusChange(request.idGenerarTransporte, 'aceptado')} 
+                                                            className="action-btn accept"
+                                                        >
+                                                            Aceptar
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleStatusChange(request.idGenerarTransporte, 'rechazado')} 
+                                                            className="action-btn reject"
+                                                        >
+                                                            Rechazar
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="mt-4 text-sm text-gray-600">
+                        Total de solicitudes: {transportRequests.length}
+                    </div>
+                </>
             )}
         </div>
     );

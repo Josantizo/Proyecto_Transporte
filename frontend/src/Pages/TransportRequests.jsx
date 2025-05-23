@@ -143,47 +143,36 @@ const TransportRequests = () => {
                     <p className="text-gray-600">No tienes solicitudes de transporte.</p>
                 </div>
             ) : (
-                <div className="grid gap-6">
+                <div className="requests-list">
                     {requests.map((request) => (
-                        <div
-                            key={request.idGenerarTransporte}
-                            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
-                        >
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <h2 className="text-xl font-semibold text-gray-800">
-                                        Solicitud #{request.idGenerarTransporte}
-                                    </h2>
-                                    <p className="text-gray-600">
-                                        Fecha: {new Date(request.FechaSolicitud).toLocaleDateString()}
-                                    </p>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(request.estado)}`}>
-                                        {getStatusMessage(request.estado)}
-                                    </span>
-                                </div>
+                        <div className="request-card" key={request.idGenerarTransporte}>
+                            <div className="request-card-header">
+                                <span className={`status-badge ${getStatusBadgeClass(request.estado)}`}>
+                                    {getStatusMessage(request.estado)}
+                                </span>
+                                <span className="request-date">{new Date(request.FechaSolicitud).toLocaleDateString()}</span>
                             </div>
+                            <h3 style={{margin: '0 0 8px 0', fontWeight: 600, fontSize: '1.1rem'}}>Solicitud de Transporte</h3>
                             <div className="request-info">
-                                <p><strong>Hora de Entrada:</strong> {request.HoraEntrada}</p>
-                                <p><strong>Hora de Salida:</strong> {request.HoraSalida}</p>
-                                <p><strong>Punto de Referencia:</strong> {request.PuntoReferencia}</p>
+                                <p><strong>Entrada:</strong> {request.HoraEntrada}</p>
+                                <p><strong>Salida:</strong> {request.HoraSalida}</p>
+                                <p><strong>Referencia:</strong> {request.PuntoReferencia}</p>
                                 {request.DireccionAlternativa && (
-                                    <p><strong>Dirección Alternativa:</strong> {request.DireccionAlternativa}</p>
+                                    <p><strong>Alt. Dirección:</strong> {request.DireccionAlternativa}</p>
                                 )}
                             </div>
                             {request.estado?.toLowerCase() === 'en proceso' && canCancelRequest(request.FechaSolicitud, request.HoraEntrada) && (
-                                <button 
-                                    className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
+                                <button
+                                    className="cancel-button"
                                     onClick={() => handleCancelRequest(request.idGenerarTransporte)}
                                 >
-                                    Cancelar Solicitud
+                                    Cancelar
                                 </button>
                             )}
                             {request.estado?.toLowerCase() === 'en proceso' && !canCancelRequest(request.FechaSolicitud, request.HoraEntrada) && (
-                                <p className="mt-4 text-red-500">
+                                <div className="cancel-warning">
                                     {getCancellationLimitMessage(request.FechaSolicitud, request.HoraEntrada)}
-                                </p>
+                                </div>
                             )}
                         </div>
                     ))}

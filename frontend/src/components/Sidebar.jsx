@@ -69,7 +69,13 @@ const Sidebar = () => {
                     {isCollapsed ? '→' : '←'}
                 </button>
             </div>
-            
+            <Link
+                to="/"
+                className={`nav-item home-nav ${location.pathname === '/' ? 'active' : ''}`}
+            >
+                <span className="nav-icon">🏠</span>
+                {!isCollapsed && <span className="nav-label">Inicio</span>}
+            </Link>
             <nav className="sidebar-nav">
                 {menuItems.map((item) => (
                     <Link

@@ -9,23 +9,32 @@
 
 .register-form-container {
     background-color: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 2.5rem 2rem 2rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.10);
     width: 100%;
-    max-width: 600px;
+    max-width: 520px;
 }
 
 .register-form-container h2 {
     text-align: center;
-    color: #333;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.register-subtitle {
+    text-align: center;
+    color: #475569;
     margin-bottom: 2rem;
+    font-size: 1.08rem;
 }
 
 .register-form {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.1rem;
 }
 
 .form-group {
@@ -49,26 +58,29 @@ input,
 select {
     padding: 0.75rem;
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 6px;
     font-size: 1rem;
     transition: border-color 0.3s ease;
+    background: #f9fafb;
 }
 
 input:focus,
 select:focus {
     outline: none;
     border-color: #4a90e2;
-    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.13);
 }
 
 input.error,
 select.error {
     border-color: #ff4d4f;
+    background: #fff2f0;
 }
 
 .error-text {
     color: #ff4d4f;
-    font-size: 0.875rem;
+    font-size: 0.89rem;
+    margin-top: -2px;
 }
 
 .error-message {
@@ -76,25 +88,28 @@ select.error {
     border: 1px solid #ffccc7;
     color: #ff4d4f;
     padding: 0.75rem;
-    border-radius: 5px;
-    margin-bottom: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.2rem;
+    text-align: center;
+    font-size: 1rem;
 }
 
 .submit-button {
-    background-color: #4a90e2;
+    background-color: #2563eb;
     color: white;
-    padding: 0.75rem;
+    padding: 0.95rem;
     border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    font-weight: 500;
+    border-radius: 6px;
+    font-size: 1.08rem;
+    font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    margin-top: 1rem;
+    margin-top: 1.2rem;
+    letter-spacing: 0.5px;
 }
 
 .submit-button:hover {
-    background-color: #357abd;
+    background-color: #1749b1;
 }
 
 .submit-button:disabled {
@@ -107,38 +122,61 @@ select.error {
     .form-row {
         grid-template-columns: 1fr;
     }
-
     .register-form-container {
-        padding: 1.5rem;
+        padding: 1.5rem 0.7rem;
     }
 }
 
 @media (max-width: 480px) {
     .register-container {
-        padding: 10px;
+        padding: 7px;
     }
-
     .register-form-container {
-        padding: 1rem;
+        padding: 0.7rem;
     }
 }
 
 .login-link {
-    margin-top: 20px;
+    margin-top: 24px;
     text-align: center;
 }
 
 .login-link p {
     color: #666;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .login-link a {
-    color: #007bff;
+    color: #2563eb;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
+    transition: color 0.2s;
 }
 
 .login-link a:hover {
     text-decoration: underline;
+    color: #1749b1;
+}
+
+.register-form-container, .register-container {
+  background: var(--color-bg);
+}
+.register-form-container h2 {
+  color: var(--color-main);
+}
+.submit-button {
+  background: var(--color-main);
+  color: var(--color-text-inverse);
+}
+.submit-button:hover {
+  background: var(--color-secondary);
+}
+.login-link a {
+  color: var(--color-main);
+}
+.login-link a:hover {
+  color: var(--color-secondary);
+}
+.error-message {
+  border: 1px solid var(--color-main);
 } 

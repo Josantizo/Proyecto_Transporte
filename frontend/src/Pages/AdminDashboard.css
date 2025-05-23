@@ -39,6 +39,7 @@
     padding: 10px;
     border-radius: 5px;
     margin-bottom: 20px;
+    border: 1px solid var(--color-main);
 }
 
 /* Estilos para el panel de administración */
@@ -222,29 +223,116 @@
 
 /* Estilos para la tabla de solicitudes */
 .requests-table {
-    overflow-x: auto;
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
 }
 
 .requests-table table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
 }
 
 .requests-table th,
 .requests-table td {
-    padding: 12px;
+    padding: 12px 15px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
 }
 
 .requests-table th {
-    background-color: #f8f9fa;
+    background-color: #f8fafc;
     font-weight: 600;
+    color: #1e293b;
+    border-bottom: 2px solid #e2e8f0;
 }
 
 .requests-table tr:hover {
-    background-color: #f8f9fa;
+    background-color: #f8fafc;
+}
+
+.requests-table td {
+    color: #475569;
+}
+
+.admin-dashboard-table {
+    padding: 20px;
+    max-width: 100%;
+    margin: 0 auto;
+    overflow-x: auto;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background-color: white;
+    color: #1e293b;
+    min-width: 150px;
+    margin-left: 8px;
+}
+
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-right: 8px;
+    transition: all 0.2s ease;
+}
+
+.action-btn.accept {
+    background-color: #22c55e;
+    color: white;
+}
+
+.action-btn.accept:hover {
+    background-color: #16a34a;
+}
+
+.action-btn.reject {
+    background-color: #ef4444;
+    color: white;
+}
+
+.action-btn.reject:hover {
+    background-color: #dc2626;
+}
+
+.status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-accepted {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-cancelled {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.status-rejected {
+    background-color: #f3f4f6;
+    color: #1f2937;
+}
+
+[class^="status-"] {
+    padding: 4px 8px;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-block;
 }
 
 /* Estilos para la sección de nueva solicitud */
@@ -357,70 +445,22 @@
     }
 }
 
-/* Tabla de solicitudes en admin */
-.admin-dashboard-table {
-    background: #23272f;
-    border-radius: 10px;
-    padding: 30px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+.admin-dashboard-table h1, .requests-table th, .filters label {
+  color: var(--color-main);
 }
-.requests-table table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    background: #fff;
+.action-btn.accept, .action-btn.reject {
+  background: var(--color-main);
+  color: var(--color-text-inverse);
 }
-.requests-table th, .requests-table td {
-    padding: 12px 10px;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
+.action-btn.accept:hover, .action-btn.reject:hover {
+  background: var(--color-secondary);
 }
-.requests-table th {
-    background: #f3f4f6;
-    font-weight: 600;
-    color: #23272f;
+.requests-table, .admin-dashboard-table {
+  background: var(--color-bg);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(168, 29, 125, 0.07);
+  border: 1px solid var(--color-border);
 }
-.requests-table tr:hover {
-    background: #f1f5f9;
-}
-
-/* Filtros */
-.filters label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 4px;
-    color: #23272f;
-}
-.filter-select {
-    padding: 6px 12px;
-    border-radius: 5px;
-    border: 1px solid #d1d5db;
-    background: #fff;
-    min-width: 120px;
-}
-
-/* Botones de acción */
-.action-btn {
-    padding: 6px 16px;
-    border: none;
-    border-radius: 5px;
-    font-size: 15px;
-    font-weight: 500;
-    margin-right: 8px;
-    cursor: pointer;
-    transition: background 0.2s, color 0.2s;
-}
-.action-btn.accept {
-    background: #22c55e;
-    color: #fff;
-}
-.action-btn.accept:hover {
-    background: #16a34a;
-}
-.action-btn.reject {
-    background: #ef4444;
-    color: #fff;
-}
-.action-btn.reject:hover {
-    background: #b91c1c;
+.filter-select:focus {
+  border-color: var(--color-main);
 } 

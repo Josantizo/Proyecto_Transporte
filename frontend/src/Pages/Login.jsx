@@ -34,12 +34,8 @@ const Login = () => {
             localStorage.setItem('user', JSON.stringify(user));
             localStorage.setItem('rol', user.rol);
             
-            // Redirect based on role
-            if (user.rol === 'admin') {
-                navigate('/admin-dashboard');
-            } else {
-                navigate('/dashboard');
-            }
+            // Redirigir siempre a Home
+            navigate('/');
         } catch (error) {
             console.error('Error en el login:', error);
             setErrorMessage(

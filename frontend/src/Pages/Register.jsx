@@ -108,7 +108,8 @@ const Register = () => {
     return (
         <div className="register-container">
             <div className="register-form-container">
-                <h2>Registro de Usuario</h2>
+                <h2>Crear una cuenta</h2>
+                <p className="register-subtitle">Llena los siguientes campos para registrarte en el sistema de transporte.</p>
                 {errorMessage && <div className="error-message">{errorMessage}</div>}
                 
                 <form onSubmit={handleSubmit} className="register-form">
@@ -134,6 +135,7 @@ const Register = () => {
                             value={formData.Contraseña}
                             onChange={handleChange}
                             className={errors.Contraseña ? 'error' : ''}
+                            placeholder="Mínimo 8 caracteres, mayúsculas, minúsculas, número y símbolo"
                         />
                         {errors.Contraseña && <span className="error-text">{errors.Contraseña}</span>}
                     </div>
@@ -147,6 +149,7 @@ const Register = () => {
                             value={formData.BMS}
                             onChange={handleChange}
                             className={errors.BMS ? 'error' : ''}
+                            placeholder="Código BMS"
                         />
                         {errors.BMS && <span className="error-text">{errors.BMS}</span>}
                     </div>
@@ -179,10 +182,10 @@ const Register = () => {
                                 value={formData.PrimerNombre}
                                 onChange={handleChange}
                                 className={errors.PrimerNombre ? 'error' : ''}
+                                placeholder="Primer Nombre"
                             />
                             {errors.PrimerNombre && <span className="error-text">{errors.PrimerNombre}</span>}
                         </div>
-
                         <div className="form-group">
                             <label htmlFor="SegundoNombre">Segundo Nombre</label>
                             <input
@@ -191,6 +194,7 @@ const Register = () => {
                                 name="SegundoNombre"
                                 value={formData.SegundoNombre}
                                 onChange={handleChange}
+                                placeholder="Segundo Nombre (opcional)"
                             />
                         </div>
                     </div>
@@ -205,10 +209,10 @@ const Register = () => {
                                 value={formData.PrimerApellido}
                                 onChange={handleChange}
                                 className={errors.PrimerApellido ? 'error' : ''}
+                                placeholder="Primer Apellido"
                             />
                             {errors.PrimerApellido && <span className="error-text">{errors.PrimerApellido}</span>}
                         </div>
-
                         <div className="form-group">
                             <label htmlFor="SegundoApellido">Segundo Apellido</label>
                             <input
@@ -217,34 +221,38 @@ const Register = () => {
                                 name="SegundoApellido"
                                 value={formData.SegundoApellido}
                                 onChange={handleChange}
+                                placeholder="Segundo Apellido (opcional)"
                             />
                         </div>
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="NumeroTelefono">Número de Teléfono</label>
-                        <input
-                            type="tel"
-                            id="NumeroTelefono"
-                            name="NumeroTelefono"
-                            value={formData.NumeroTelefono}
-                            onChange={handleChange}
-                            className={errors.NumeroTelefono ? 'error' : ''}
-                        />
-                        {errors.NumeroTelefono && <span className="error-text">{errors.NumeroTelefono}</span>}
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="Direccion">Dirección</label>
-                        <input
-                            type="text"
-                            id="Direccion"
-                            name="Direccion"
-                            value={formData.Direccion}
-                            onChange={handleChange}
-                            className={errors.Direccion ? 'error' : ''}
-                        />
-                        {errors.Direccion && <span className="error-text">{errors.Direccion}</span>}
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="NumeroTelefono">Número de Teléfono</label>
+                            <input
+                                type="text"
+                                id="NumeroTelefono"
+                                name="NumeroTelefono"
+                                value={formData.NumeroTelefono}
+                                onChange={handleChange}
+                                className={errors.NumeroTelefono ? 'error' : ''}
+                                placeholder="Ejemplo: 55551234"
+                            />
+                            {errors.NumeroTelefono && <span className="error-text">{errors.NumeroTelefono}</span>}
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="Direccion">Dirección</label>
+                            <input
+                                type="text"
+                                id="Direccion"
+                                name="Direccion"
+                                value={formData.Direccion}
+                                onChange={handleChange}
+                                className={errors.Direccion ? 'error' : ''}
+                                placeholder="Dirección completa"
+                            />
+                            {errors.Direccion && <span className="error-text">{errors.Direccion}</span>}
+                        </div>
                     </div>
 
                     <button type="submit" className="submit-button" disabled={loading}>
@@ -252,7 +260,7 @@ const Register = () => {
                     </button>
                 </form>
                 <div className="login-link">
-                    <p>¿Ya tienes usuario? <Link to="/login">Inicia sesión</Link></p>
+                    <p>¿Ya tienes una cuenta? <Link to="/login">Inicia sesión</Link></p>
                 </div>
             </div>
         </div>

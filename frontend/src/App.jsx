@@ -8,6 +8,8 @@ import Transport from './Pages/Transport';
 import SolicitarTransporte from './Pages/SolicitarTransporte';
 import TransportRequests from './Pages/TransportRequests';
 import Sidebar from './components/Sidebar';
+import Home from './Pages/Home';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 function App() {
@@ -15,70 +17,91 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* Página de inicio protegida */}
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <div className="app-layout">
+                  <Sidebar />
+                  <main className="main-content">
+                    <Home />
+                  </main>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+          {/* Rutas públicas */}
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
-          
-          {/* Admin Routes */}
+          {/* Admin Routes protegidas */}
           <Route 
             path="/admin-dashboard" 
             element={
-              <div className="app-layout">
-                <Sidebar />
-                <main className="main-content">
-                  <AdminDashboard />
-                </main>
-              </div>
+              <ProtectedRoute>
+                <div className="app-layout">
+                  <Sidebar />
+                  <main className="main-content">
+                    <AdminDashboard />
+                  </main>
+                </div>
+              </ProtectedRoute>
             } 
           />
-
-          {/* User Routes */}
+          {/* User Routes protegidas */}
           <Route 
             path="/dashboard" 
             element={
-              <div className="app-layout">
-                <Sidebar />
-                <main className="main-content">
-                  <Dashboard />
-                </main>
-              </div>
+              <ProtectedRoute>
+                <div className="app-layout">
+                  <Sidebar />
+                  <main className="main-content">
+                    <Dashboard />
+                  </main>
+                </div>
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/transport" 
             element={
-              <div className="app-layout">
-                <Sidebar />
-                <main className="main-content">
-                  <Transport />
-                </main>
-              </div>
+              <ProtectedRoute>
+                <div className="app-layout">
+                  <Sidebar />
+                  <main className="main-content">
+                    <Transport />
+                  </main>
+                </div>
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/solicitar-transporte" 
             element={
-              <div className="app-layout">
-                <Sidebar />
-                <main className="main-content">
-                  <SolicitarTransporte />
-                </main>
-              </div>
+              <ProtectedRoute>
+                <div className="app-layout">
+                  <Sidebar />
+                  <main className="main-content">
+                    <SolicitarTransporte />
+                  </main>
+                </div>
+              </ProtectedRoute>
             } 
           />
           <Route 
             path="/mis-solicitudes" 
             element={
-              <div className="app-layout">
-                <Sidebar />
-                <main className="main-content">
-                  <TransportRequests />
-                </main>
-              </div>
+              <ProtectedRoute>
+                <div className="app-layout">
+                  <Sidebar />
+                  <main className="main-content">
+                    <TransportRequests />
+                  </main>
+                </div>
+              </ProtectedRoute>
             } 
           />
-          
-          {/* Redirect any other route to login */}
+          {/* Redirige cualquier otra ruta a login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>

@@ -3,7 +3,8 @@
     left: 0;
     top: 0;
     height: 100vh;
-    background-color: #ffffff;
+    background: var(--color-secondary);
+    color: var(--color-text-inverse);
     box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     display: flex;
@@ -26,7 +27,7 @@
 
 .sidebar-header h2 {
     margin: 0;
-    color: #333;
+    color: var(--color-main);
     font-size: 1.5rem;
     white-space: nowrap;
     overflow: hidden;
@@ -56,20 +57,20 @@
     display: flex;
     align-items: center;
     padding: 0.8rem 1.5rem;
-    color: #666;
+    color: var(--color-text-inverse);
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: background 0.2s, color 0.2s;
     white-space: nowrap;
 }
 
 .nav-item:hover {
-    background-color: #f5f5f5;
-    color: #333;
+    background: var(--color-main);
+    color: var(--color-text-inverse);
 }
 
 .nav-item.active {
-    background-color: #e3f2fd;
-    color: #1976d2;
+    background: var(--color-main);
+    color: var(--color-text-inverse);
     border-left: 4px solid #1976d2;
 }
 
@@ -95,8 +96,8 @@
     justify-content: center;
     width: 100%;
     padding: 0.8rem;
-    background-color: #ffebee;
-    color: #d32f2f;
+    background: var(--color-main);
+    color: var(--color-text-inverse);
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -105,7 +106,7 @@
 }
 
 .logout-button:hover {
-    background-color: #ffcdd2;
+    background: #8c175e;
 }
 
 .sidebar.collapsed .logout-button {
