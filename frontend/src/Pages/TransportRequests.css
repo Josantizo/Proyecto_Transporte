@@ -124,4 +124,84 @@
     border-radius: 4px;
     margin-bottom: 20px;
     border: 1px solid #c3e6cb;
+}
+
+/* Estilos para el contenedor principal */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Estilos para los botones */
+.bg-blue-600 {
+    transition: all 0.3s ease;
+}
+
+.bg-blue-600:hover {
+    background-color: #1d4ed8;
+}
+
+/* Estilos para las tarjetas de solicitud */
+.bg-white {
+    transition: all 0.3s ease;
+}
+
+.bg-white:hover {
+    transform: translateY(-2px);
+}
+
+/* Estilos para los badges de estado */
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-accepted {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-rejected {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
+/* Estilos para la información de la solicitud */
+.request-info {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+}
+
+.request-info p {
+    margin: 0.5rem 0;
+}
+
+/* Estilos para el botón de cancelar */
+.bg-red-500 {
+    transition: all 0.3s ease;
+}
+
+.bg-red-500:hover {
+    background-color: #b91c1c;
+}
+
+/* Estilos para el spinner de carga */
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 } 

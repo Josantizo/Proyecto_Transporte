@@ -1,0 +1,426 @@
+.admin-dashboard {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.admin-header {
+    margin-bottom: 30px;
+}
+
+.admin-header h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.tab-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-buttons button.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+/* Estilos para el panel de administración */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Estilos para los botones de filtro */
+.flex button {
+    transition: all 0.3s ease;
+}
+
+.flex button:hover {
+    opacity: 0.9;
+}
+
+/* Estilos para las tarjetas de solicitud */
+.bg-white {
+    transition: all 0.3s ease;
+}
+
+.bg-white:hover {
+    transform: translateY(-2px);
+}
+
+/* Estilos para los badges de estado */
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-accepted {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-rejected {
+    background-color: #e2e3e5;
+    color: #383d41;
+}
+
+/* Estilos para la información de la solicitud */
+.request-info {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+}
+
+.request-info p {
+    margin: 0.5rem 0;
+}
+
+/* Estilos para los botones de acción */
+.bg-green-500 {
+    transition: all 0.3s ease;
+}
+
+.bg-green-500:hover {
+    background-color: #15803d;
+}
+
+.bg-red-500 {
+    transition: all 0.3s ease;
+}
+
+.bg-red-500:hover {
+    background-color: #b91c1c;
+}
+
+/* Estilos para el spinner de carga */
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.admin-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-tabs button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.admin-tabs button.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filters input,
+.filters select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.filters button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.requests-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.request-card {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.request-card h4 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.request-card p {
+    margin: 5px 0;
+    color: #666;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.accept-button,
+.reject-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.accept-button {
+    background-color: #28a745;
+    color: white;
+}
+
+.reject-button {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Estilos para la tabla de solicitudes */
+.requests-table {
+    overflow-x: auto;
+}
+
+.requests-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.requests-table th,
+.requests-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.requests-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.requests-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Estilos para la sección de nueva solicitud */
+.nueva-solicitud-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.transport-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.submit-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+    background-color: #0056b3;
+}
+
+/* Estilos para la sección de perfil */
+.perfil-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.profile-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Estilos para la sección de mis solicitudes */
+.mis-solicitudes-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .tab-buttons {
+        flex-wrap: wrap;
+    }
+
+    .tab-buttons button {
+        flex: 1 1 calc(50% - 5px);
+    }
+
+    .admin-tabs {
+        flex-wrap: wrap;
+    }
+
+    .admin-tabs button {
+        flex: 1 1 calc(50% - 5px);
+    }
+
+    .filters {
+        flex-direction: column;
+    }
+
+    .filters input,
+    .filters select,
+    .filters button {
+        width: 100%;
+    }
+
+    .requests-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .requests-table {
+        font-size: 14px;
+    }
+
+    .requests-table th,
+    .requests-table td {
+        padding: 8px;
+    }
+}
+
+/* Tabla de solicitudes en admin */
+.admin-dashboard-table {
+    background: #23272f;
+    border-radius: 10px;
+    padding: 30px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.requests-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #fff;
+}
+.requests-table th, .requests-table td {
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+.requests-table th {
+    background: #f3f4f6;
+    font-weight: 600;
+    color: #23272f;
+}
+.requests-table tr:hover {
+    background: #f1f5f9;
+}
+
+/* Filtros */
+.filters label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #23272f;
+}
+.filter-select {
+    padding: 6px 12px;
+    border-radius: 5px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    min-width: 120px;
+}
+
+/* Botones de acción */
+.action-btn {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 5px;
+    font-size: 15px;
+    font-weight: 500;
+    margin-right: 8px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.action-btn.accept {
+    background: #22c55e;
+    color: #fff;
+}
+.action-btn.accept:hover {
+    background: #16a34a;
+}
+.action-btn.reject {
+    background: #ef4444;
+    color: #fff;
+}
+.action-btn.reject:hover {
+    background: #b91c1c;
+} 

@@ -27,9 +27,19 @@ const Login = () => {
 
         try {
             const response = await axios.post('http://localhost:3001/api/login', formData);
-            localStorage.setItem('token', response.data.token);
-            // Redirigir al dashboard después del login exitoso
-            navigate('/dashboard');
+            const { token, user } = response.data;
+            
+            // Store user data and token
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem('rol', user.rol);
+            
+            // Redirect based on role
+            if (user.rol === 'admin') {
+                navigate('/admin-dashboard');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (error) {
             console.error('Error en el login:', error);
             setErrorMessage(
@@ -57,6 +67,7 @@ const Login = () => {
                             value={formData.CorreoEmpresarial}
                             onChange={handleChange}
                             required
+                            placeholder="ejemplo@teleperformance.com.gt"
                         />
                     </div>
 

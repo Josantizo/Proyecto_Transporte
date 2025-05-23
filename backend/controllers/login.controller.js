@@ -7,7 +7,7 @@ const db = require('../config/db');
 // Configuración del rate limiter para login
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 5, // 5 intentos
+    max: 15, // 15 intentos
     message: 'Demasiados intentos de inicio de sesión, por favor intente más tarde'
 });
 
@@ -19,7 +19,8 @@ const validateRegister = [
     body('PrimerNombre').notEmpty().withMessage('El primer nombre es requerido'),
     body('PrimerApellido').notEmpty().withMessage('El primer apellido es requerido'),
     body('NumeroTelefono').notEmpty().withMessage('El número de teléfono es requerido'),
-    body('Direccion').notEmpty().withMessage('La dirección es requerida')
+    body('Direccion').notEmpty().withMessage('La dirección es requerida'),
+    body('LOB').notEmpty().withMessage('El LOB es requerido')
 ];
 
 // Middleware para validar el login
@@ -27,6 +28,15 @@ const validateLogin = [
     body('CorreoEmpresarial').isEmail().withMessage('Correo electrónico inválido'),
     body('Contraseña').notEmpty().withMessage('La contraseña es requerida')
 ];
+
+// Función para determinar el rol basado en el dominio del correo
+const determineRole = (email) => {
+    const domain = email.split('@')[1];
+    if (domain === 'teleperformance.com.gt' || domain === 'gmail.com') {
+        return 'admin';
+    }
+    return 'usuario';
+};
 
 // Función para registrar un nuevo usuario
 const registerUser = async (req, res) => {
@@ -45,7 +55,8 @@ const registerUser = async (req, res) => {
             PrimerApellido, 
             SegundoApellido, 
             NumeroTelefono, 
-            Direccion
+            Direccion,
+            LOB
         } = req.body;
 
         // Verificar si el correo ya está registrado
@@ -56,8 +67,8 @@ const registerUser = async (req, res) => {
 
         // Insertar el pasajero primero
         const [pasajeroResult] = await db.query(
-            'INSERT INTO pasajeros (BMS, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, NumeroTelefono, Direccion) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [BMS, PrimerNombre, SegundoNombre || null, PrimerApellido, SegundoApellido || null, NumeroTelefono, Direccion]
+            'INSERT INTO pasajeros (BMS, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, NumeroTelefono, Direccion, LOB) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [BMS, PrimerNombre, SegundoNombre || null, PrimerApellido, SegundoApellido || null, NumeroTelefono, Direccion, LOB]
         );
         
         const idPasajero = pasajeroResult.insertId;
@@ -66,20 +77,24 @@ const registerUser = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(Contraseña, salt);
 
-        // Insertar el login con rol por defecto
+        // Determinar el rol basado en el dominio del correo
+        const rol = determineRole(CorreoEmpresarial);
+
+        // Insertar el login con el rol determinado
         const [loginResult] = await db.query(
-            'INSERT INTO login (CorreoEmpresarial, Contraseña, idPasajero_fk, rol) VALUES (?, ?, ?, ?)',
-            [CorreoEmpresarial, hashedPassword, idPasajero, 'usuario']
+            'INSERT INTO login (CorreoEmpresarial, Contraseña, idPasajero_fk, rol, LOB) VALUES (?, ?, ?, ?, ?)',
+            [CorreoEmpresarial, hashedPassword, idPasajero, rol, LOB]
         );
 
         res.status(201).json({ 
             message: 'Usuario registrado exitosamente',
             loginId: loginResult.insertId,
-            pasajeroId: idPasajero
+            pasajeroId: idPasajero,
+            rol: rol
         });
     } catch (error) {
         console.error('Error en el registro:', error);
-        res.status(500).json({ message: 'Error en el servidor', error: error.message });
+        res.status(500).json({ message: 'Error al registrar el usuario' });
     }
 };
 
@@ -121,7 +136,8 @@ const loginUser = async (req, res) => {
             id: user.idLogin,
             email: user.CorreoEmpresarial,
             rol: user.rol,
-            pasajeroId: user.idPasajero
+            pasajeroId: user.idPasajero,
+            LOB: user.LOB
         };
 
         console.log('Generating token with payload:', tokenPayload);
@@ -138,13 +154,15 @@ const loginUser = async (req, res) => {
                 id: user.idLogin,
                 email: user.CorreoEmpresarial,
                 rol: user.rol,
+                LOB: user.LOB,
                 pasajero: {
                     id: user.idPasajero,
                     BMS: user.BMS,
                     nombre: `${user.PrimerNombre} ${user.SegundoNombre || ''}`.trim(),
                     apellido: `${user.PrimerApellido} ${user.SegundoApellido || ''}`.trim(),
                     telefono: user.NumeroTelefono,
-                    direccion: user.Direccion
+                    direccion: user.Direccion,
+                    LOB: user.LOB
                 }
             }
         });

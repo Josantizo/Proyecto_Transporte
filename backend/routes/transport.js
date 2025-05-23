@@ -10,16 +10,38 @@ router.get('/user-requests', authenticateToken, async (req, res) => {
         console.log('Fetching requests for user:', userId);
 
         const query = `
-            SELECT gt.*, dgt.idPasajero_fk2
+            SELECT 
+                gt.idGenerarTransporte,
+                gt.FechaSolicitud,
+                gt.HoraEntrada,
+                gt.HoraSalida,
+                gt.PuntoReferencia,
+                gt.DireccionAlternativa,
+                gt.estado,
+                p.BMS,
+                p.PrimerNombre,
+                p.PrimerApellido,
+                p.NumeroTelefono,
+                p.Direccion
             FROM generartransporte gt
-            JOIN detalle_generartransporte dgt ON gt.idDetalle_GenerarTransporte = dgt.idDetalle_GenerarTransporte
+            INNER JOIN detalle_generartransporte dgt ON gt.idDetalle_GenerarTransporte = dgt.idDetalle_GenerarTransporte
+            INNER JOIN pasajeros p ON dgt.idPasajero_fk2 = p.idPasajero
             WHERE dgt.idPasajero_fk2 = ?
             ORDER BY gt.FechaSolicitud DESC, gt.HoraEntrada DESC
         `;
         
         const [requests] = await db.query(query, [userId]);
         console.log('Found requests:', requests);
-        res.json(requests);
+
+        // Transformar los datos para el frontend
+        const transformedRequests = requests.map(request => ({
+            ...request,
+            FechaSolicitud: request.FechaSolicitud ? new Date(request.FechaSolicitud).toISOString() : null,
+            HoraEntrada: request.HoraEntrada ? new Date(request.HoraEntrada).toISOString() : null,
+            HoraSalida: request.HoraSalida ? new Date(request.HoraSalida).toISOString() : null
+        }));
+
+        res.json(transformedRequests);
     } catch (error) {
         console.error('Error fetching user requests:', error);
         res.status(500).json({ 
@@ -54,7 +76,7 @@ router.delete('/cancel/:requestId', authenticateToken, async (req, res) => {
         const request = requests[0];
 
         // Check if the request is pending
-        if (request.Estado !== 'PENDIENTE') {
+        if (request.estado !== 'En proceso') {
             return res.status(400).json({ message: 'Solo se pueden cancelar solicitudes pendientes' });
         }
 
@@ -87,7 +109,7 @@ router.delete('/cancel/:requestId', authenticateToken, async (req, res) => {
         // Update the request status to CANCELLED
         const updateQuery = `
             UPDATE generartransporte 
-            SET Estado = 'CANCELADO' 
+            SET estado = 'cancelado' 
             WHERE idGenerarTransporte = ?
         `;
         
@@ -138,16 +160,6 @@ router.post('/create', authenticateToken, async (req, res) => {
             usarDireccionAlternativa,
             coordenadas
         } = req.body;
-
-        console.log('Datos procesados:', {
-            horaEntrada,
-            horaSalida,
-            puntoReferencia,
-            fechaSolicitud,
-            direccionAlternativa,
-            usarDireccionAlternativa,
-            coordenadas
-        });
 
         // Validar formato de fecha y hora
         try {
@@ -218,33 +230,40 @@ router.post('/create', authenticateToken, async (req, res) => {
         console.log('Transacción iniciada');
 
         try {
+            // Obtener el siguiente ID para el detalle usando la secuencia
+            const [detalleIdResult] = await connection.query('SELECT nextval("detalle_generartransporte_seq") as next_id');
+            const detalleId = detalleIdResult[0].next_id;
+
             // Primero creamos el detalle de transporte
             const detalleQuery = `
                 INSERT INTO detalle_generartransporte (
+                    idDetalle_GenerarTransporte,
                     idPasajero_fk2
-                ) VALUES (?)
+                ) VALUES (?, ?)
             `;
 
             console.log('Query detalle a ejecutar:', detalleQuery);
-            console.log('Valores a insertar en detalle:', [userId]);
+            console.log('Valores a insertar en detalle:', [detalleId, userId]);
 
-            const [detalleResult] = await connection.query(detalleQuery, [userId]);
-            console.log('Resultado de la inserción del detalle:', JSON.stringify(detalleResult, null, 2));
+            await connection.query(detalleQuery, [detalleId, userId]);
+            console.log('Detalle insertado con ID:', detalleId);
 
-            if (!detalleResult.insertId) {
-                throw new Error('No se pudo obtener el ID del detalle insertado');
-            }
+            // Obtener el siguiente ID para el transporte usando la secuencia
+            const [transporteIdResult] = await connection.query('SELECT nextval("generartransporte_seq") as next_id');
+            const transporteId = transporteIdResult[0].next_id;
 
             // Luego creamos el transporte
             const transporteQuery = `
                 INSERT INTO generartransporte (
+                    idGenerarTransporte,
                     HoraEntrada,
                     HoraSalida,
                     PuntoReferencia,
                     FechaSolicitud,
                     DireccionAlternativa,
-                    idDetalle_GenerarTransporte
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                    idDetalle_GenerarTransporte,
+                    estado
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'En proceso')
             `;
 
             // Formatear las fechas para MySQL
@@ -254,62 +273,38 @@ router.post('/create', authenticateToken, async (req, res) => {
             };
 
             const valoresTransporte = [
+                transporteId,
                 formatDateForMySQL(horaEntrada),
                 formatDateForMySQL(horaSalida),
                 puntoReferencia,
                 fechaSolicitud,
                 usarDireccionAlternativa ? direccionAlternativa : null,
-                detalleResult.insertId
+                detalleId
             ];
 
             console.log('Query transporte a ejecutar:', transporteQuery);
             console.log('Valores a insertar en transporte:', JSON.stringify(valoresTransporte, null, 2));
 
-            try {
-                const [transporteResult] = await connection.query(transporteQuery, valoresTransporte);
-                console.log('Resultado de la inserción del transporte:', JSON.stringify(transporteResult, null, 2));
+            await connection.query(transporteQuery, valoresTransporte);
+            console.log('Transporte insertado con ID:', transporteId);
 
-                if (!transporteResult.insertId) {
-                    throw new Error('No se pudo obtener el ID del transporte insertado');
-                }
+            // Actualizar el detalle con el ID del transporte
+            const updateDetalleQuery = `
+                UPDATE detalle_generartransporte 
+                SET idGenerarTransporte_fk2 = ? 
+                WHERE idDetalle_GenerarTransporte = ?
+            `;
+            await connection.query(updateDetalleQuery, [transporteId, detalleId]);
 
-                // Actualizamos el detalle con el ID del transporte
-                const updateDetalleQuery = `
-                    UPDATE detalle_generartransporte 
-                    SET idGenerarTransporte_fk2 = ? 
-                    WHERE idDetalle_GenerarTransporte = ?
-                `;
+            // Confirmar transacción
+            await connection.commit();
+            console.log('Transacción confirmada');
 
-                const updateValues = [transporteResult.insertId, detalleResult.insertId];
-                console.log('Query actualización detalle:', updateDetalleQuery);
-                console.log('Valores para actualización:', JSON.stringify(updateValues, null, 2));
-
-                await connection.query(updateDetalleQuery, updateValues);
-                console.log('Detalle actualizado con el ID del transporte');
-
-                // Confirmar transacción
-                await connection.commit();
-                console.log('Transacción confirmada');
-
-                res.status(201).json({
-                    success: true,
-                    message: 'Solicitud de transporte creada exitosamente',
-                    solicitudId: transporteResult.insertId
-                });
-            } catch (dbError) {
-                // Revertir transacción en caso de error
-                await connection.rollback();
-                console.error('Error en la operación de base de datos:', dbError);
-                console.error('Stack trace del error de DB:', dbError.stack);
-                console.error('Código de error:', dbError.code);
-                console.error('Mensaje de error:', dbError.message);
-                console.error('Estado SQL:', dbError.sqlState);
-                res.status(500).json({
-                    success: false,
-                    message: 'Error al crear la solicitud de transporte',
-                    error: dbError.message
-                });
-            }
+            res.status(201).json({
+                success: true,
+                message: 'Solicitud de transporte creada exitosamente',
+                solicitudId: transporteId
+            });
         } catch (dbError) {
             // Revertir transacción en caso de error
             await connection.rollback();

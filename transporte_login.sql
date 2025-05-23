@@ -27,8 +27,9 @@ CREATE TABLE `login` (
   `CorreoEmpresarial` varchar(45) NOT NULL,
   `Contraseña` varchar(150) NOT NULL,
   `idPasajero_fk` int NOT NULL,
-  `rol` enum('aadmin','usuario') NOT NULL DEFAULT 'usuario',
+  `rol` enum('admin','usuario') NOT NULL DEFAULT 'usuario',
   `ultimaActualizacionPassword` datetime DEFAULT CURRENT_TIMESTAMP,
+  `LOB` enum('COX Billing','COX Tech Support','Centene','Gusto') DEFAULT NULL,
   PRIMARY KEY (`idLogin`),
   KEY `idPasajero_fk_idx` (`idPasajero_fk`),
   CONSTRAINT `idPasajero_fk` FOREIGN KEY (`idPasajero_fk`) REFERENCES `pasajeros` (`idPasajero`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -41,6 +42,7 @@ CREATE TABLE `login` (
 
 LOCK TABLES `login` WRITE;
 /*!40000 ALTER TABLE `login` DISABLE KEYS */;
+INSERT INTO `login` VALUES (1,'diegojaviermorataya@gmail.com','$2a$10$0s1t2RttUSVzNGCVYI7RUOOWJfHBRb7exuKuaJ6bLj4n04ceGrhaW',1,'admin','2025-05-22 22:41:08','COX Tech Support'),(2,'diegojaviermorataya@teleperformance.com','$2a$10$.xO2vi3fRDvpoE.EE6rtCuwn4p0wcKIHHYbNKZNkh08jqhr0w0GzO',2,'usuario','2025-05-22 22:41:23','Centene');
 /*!40000 ALTER TABLE `login` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -53,4 +55,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-21 17:39:36
+-- Dump completed on 2025-05-22 23:23:31

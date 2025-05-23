@@ -14,7 +14,8 @@ const Register = () => {
         PrimerApellido: '',
         SegundoApellido: '',
         NumeroTelefono: '',
-        Direccion: ''
+        Direccion: '',
+        LOB: ''
     });
 
     const [errors, setErrors] = useState({});
@@ -46,6 +47,7 @@ const Register = () => {
         if (!formData.PrimerApellido) newErrors.PrimerApellido = 'El primer apellido es requerido';
         if (!formData.NumeroTelefono) newErrors.NumeroTelefono = 'El número de teléfono es requerido';
         if (!formData.Direccion) newErrors.Direccion = 'La dirección es requerida';
+        if (!formData.LOB) newErrors.LOB = 'El LOB es requerido';
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -147,6 +149,24 @@ const Register = () => {
                             className={errors.BMS ? 'error' : ''}
                         />
                         {errors.BMS && <span className="error-text">{errors.BMS}</span>}
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="LOB">LOB</label>
+                        <select
+                            id="LOB"
+                            name="LOB"
+                            value={formData.LOB}
+                            onChange={handleChange}
+                            className={errors.LOB ? 'error' : ''}
+                        >
+                            <option value="">Seleccione un LOB</option>
+                            <option value="COX Billing">COX Billing</option>
+                            <option value="COX Tech Support">COX Tech Support</option>
+                            <option value="Centene">Centene</option>
+                            <option value="Gusto">Gusto</option>
+                        </select>
+                        {errors.LOB && <span className="error-text">{errors.LOB}</span>}
                     </div>
 
                     <div className="form-row">

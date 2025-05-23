@@ -6,13 +6,16 @@ const Sidebar = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const userRole = localStorage.getItem('rol');
 
     const handleLogout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('rol');
         navigate('/login');
     };
 
-    const menuItems = [
+    const userMenuItems = [
         {
             path: '/dashboard',
             label: 'Actualización de Usuario',
@@ -29,6 +32,31 @@ const Sidebar = () => {
             icon: '📋'
         }
     ];
+
+    const adminMenuItems = [
+        {
+            path: '/admin-dashboard',
+            label: 'Panel de Administración',
+            icon: '⚙️'
+        },
+        {
+            path: '/dashboard',
+            label: 'Actualización de Usuario',
+            icon: '👤'
+        },
+        {
+            path: '/transport',
+            label: 'Solicitar Transporte',
+            icon: '🚐'
+        },
+        {
+            path: '/mis-solicitudes',
+            label: 'Mis Solicitudes',
+            icon: '📋'
+        }
+    ];
+
+    const menuItems = userRole === 'admin' ? adminMenuItems : userMenuItems;
 
     return (
         <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -56,9 +84,9 @@ const Sidebar = () => {
             </nav>
 
             <div className="sidebar-footer">
-                <button onClick={handleLogout} className="logout-button">
-                    <span className="nav-icon">⏻</span>
-                    {!isCollapsed && <span>Cerrar Sesión</span>}
+                <button className="logout-button" onClick={handleLogout}>
+                    {!isCollapsed && 'Cerrar Sesión'}
+                    {isCollapsed && '🚪'}
                 </button>
             </div>
         </div>

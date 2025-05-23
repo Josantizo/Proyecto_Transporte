@@ -45,7 +45,8 @@ label {
     color: #555;
 }
 
-input {
+input,
+select {
     padding: 0.75rem;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -53,13 +54,15 @@ input {
     transition: border-color 0.3s ease;
 }
 
-input:focus {
+input:focus,
+select:focus {
     outline: none;
     border-color: #4a90e2;
     box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
-input.error {
+input.error,
+select.error {
     border-color: #ff4d4f;
 }
 

@@ -7,32 +7,26 @@ const TransportRequests = () => {
     const navigate = useNavigate();
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            navigate('/login');
-            return;
-        }
-        fetchRequests();
-    }, [navigate]);
+        const fetchRequests = async () => {
+            try {
+                const response = await axios.get('http://localhost:3001/api/transport/user-requests', {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                setRequests(response.data);
+                setLoading(false);
+            } catch (err) {
+                setError('Error al cargar las solicitudes');
+                setLoading(false);
+            }
+        };
 
-    const fetchRequests = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:3001/api/transport/user-requests', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setRequests(response.data);
-        } catch (error) {
-            setError('Error al cargar las solicitudes de transporte');
-            console.error('Error:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+        fetchRequests();
+    }, []);
 
     const canCancelRequest = (requestDate, requestTime) => {
         const now = new Date();
@@ -70,7 +64,6 @@ const TransportRequests = () => {
             await axios.delete(`http://localhost:3001/api/transport/cancel/${requestId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setSuccess('Solicitud cancelada exitosamente');
             // Refresh the requests list
             fetchRequests();
         } catch (error) {
@@ -124,53 +117,78 @@ const TransportRequests = () => {
         }
     };
 
-    if (loading) {
-        return <div className="loading">Cargando solicitudes...</div>;
-    }
-
     return (
-        <div className="transport-requests-container">
-            <h2>Mis Solicitudes de Transporte</h2>
-            
-            {error && <div className="error-message">{error}</div>}
-            {success && <div className="success-message">{success}</div>}
+        <div className="container mx-auto px-4 py-8">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-800">Mis Solicitudes de Transporte</h1>
+                <button
+                    onClick={() => navigate('/transport')}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                >
+                    Nueva Solicitud
+                </button>
+            </div>
 
-            <div className="requests-list">
-                {requests.length === 0 ? (
-                    <p>No tienes solicitudes de transporte pendientes.</p>
-                ) : (
-                    requests.map((request) => (
-                        <div key={request.idGenerarTransporte} className="request-card">
+            {loading ? (
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Cargando solicitudes...</p>
+                </div>
+            ) : error ? (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    {error}
+                </div>
+            ) : requests.length === 0 ? (
+                <div className="text-center py-8">
+                    <p className="text-gray-600">No tienes solicitudes de transporte.</p>
+                </div>
+            ) : (
+                <div className="grid gap-6">
+                    {requests.map((request) => (
+                        <div
+                            key={request.idGenerarTransporte}
+                            className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+                        >
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h2 className="text-xl font-semibold text-gray-800">
+                                        Solicitud #{request.idGenerarTransporte}
+                                    </h2>
+                                    <p className="text-gray-600">
+                                        Fecha: {new Date(request.FechaSolicitud).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(request.estado)}`}>
+                                        {getStatusMessage(request.estado)}
+                                    </span>
+                                </div>
+                            </div>
                             <div className="request-info">
-                                <h3>Solicitud #{request.idGenerarTransporte}</h3>
-                                <p><strong>Fecha de Transporte:</strong> {formatDate(request.FechaSolicitud)}</p>
                                 <p><strong>Hora de Entrada:</strong> {request.HoraEntrada}</p>
                                 <p><strong>Hora de Salida:</strong> {request.HoraSalida}</p>
                                 <p><strong>Punto de Referencia:</strong> {request.PuntoReferencia}</p>
                                 {request.DireccionAlternativa && (
                                     <p><strong>Dirección Alternativa:</strong> {request.DireccionAlternativa}</p>
                                 )}
-                                <p className={`status-badge ${getStatusBadgeClass(request.Estado)}`}>
-                                    <strong>Estado:</strong> {getStatusMessage(request.Estado)}
-                                </p>
                             </div>
-                            {request.Estado?.toLowerCase() === 'en proceso' && canCancelRequest(request.FechaSolicitud, request.HoraEntrada) && (
+                            {request.estado?.toLowerCase() === 'en proceso' && canCancelRequest(request.FechaSolicitud, request.HoraEntrada) && (
                                 <button 
-                                    className="cancel-button"
+                                    className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
                                     onClick={() => handleCancelRequest(request.idGenerarTransporte)}
                                 >
                                     Cancelar Solicitud
                                 </button>
                             )}
-                            {request.Estado?.toLowerCase() === 'en proceso' && !canCancelRequest(request.FechaSolicitud, request.HoraEntrada) && (
-                                <p className="cancel-warning">
+                            {request.estado?.toLowerCase() === 'en proceso' && !canCancelRequest(request.FechaSolicitud, request.HoraEntrada) && (
+                                <p className="mt-4 text-red-500">
                                     {getCancellationLimitMessage(request.FechaSolicitud, request.HoraEntrada)}
                                 </p>
                             )}
                         </div>
-                    ))
-                )}
-            </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

@@ -3,6 +3,7 @@ const cors = require('cors');
 const loginRoutes = require('./routes/login.rutas');
 const profileRoutes = require('./routes/profile.rutas');
 const transportRoutes = require('./routes/transport');
+const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use('/api/login', loginRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/transport', transportRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Manejo de errores
 app.use((err, req, res, next) => {

@@ -23,8 +23,8 @@ DROP TABLE IF EXISTS `detalle_generartransporte`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `detalle_generartransporte` (
-  `idDetalle_GenerarTransporte` int NOT NULL AUTO_INCREMENT,
-  `idGenerarTransporte_fk2` int DEFAULT NULL,
+  `idDetalle_GenerarTransporte` bigint NOT NULL,
+  `idGenerarTransporte_fk2` bigint DEFAULT NULL,
   `idPasajero_fk2` int NOT NULL,
   PRIMARY KEY (`idDetalle_GenerarTransporte`),
   KEY `idPasajero_fk2_idx` (`idPasajero_fk2`),
@@ -40,6 +40,7 @@ CREATE TABLE `detalle_generartransporte` (
 
 LOCK TABLES `detalle_generartransporte` WRITE;
 /*!40000 ALTER TABLE `detalle_generartransporte` DISABLE KEYS */;
+INSERT INTO `detalle_generartransporte` VALUES (2,2,1),(3,3,2),(4,4,1);
 /*!40000 ALTER TABLE `detalle_generartransporte` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -52,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-21 17:39:35
+-- Dump completed on 2025-05-22 23:23:31

@@ -23,13 +23,14 @@ DROP TABLE IF EXISTS `generartransporte`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `generartransporte` (
-  `idGenerarTransporte` int NOT NULL AUTO_INCREMENT,
+  `idGenerarTransporte` bigint NOT NULL,
   `HoraEntrada` datetime DEFAULT NULL,
   `HoraSalida` datetime DEFAULT NULL,
   `PuntoReferencia` varchar(45) NOT NULL,
   `FechaSolicitud` date NOT NULL,
   `DireccionAlternativa` varchar(255) DEFAULT NULL,
-  `idDetalle_GenerarTransporte` int NOT NULL,
+  `estado` enum('En Proceso','aceptado','cancelado','rechazado') DEFAULT NULL,
+  `idDetalle_GenerarTransporte` bigint NOT NULL,
   PRIMARY KEY (`idGenerarTransporte`),
   KEY `idDetalle_GenerarTransporte_fk2_idx` (`idDetalle_GenerarTransporte`),
   CONSTRAINT `idDetalle_GenerarTransporte_fk2` FOREIGN KEY (`idDetalle_GenerarTransporte`) REFERENCES `detalle_generartransporte` (`idDetalle_GenerarTransporte`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -42,6 +43,7 @@ CREATE TABLE `generartransporte` (
 
 LOCK TABLES `generartransporte` WRITE;
 /*!40000 ALTER TABLE `generartransporte` DISABLE KEYS */;
+INSERT INTO `generartransporte` VALUES (2,'2025-05-22 04:41:00','2025-05-22 05:41:00','Lat: 14.651839, Lng: -90.484829','2025-05-22',NULL,'aceptado',2),(3,'2025-05-22 04:42:00','2025-05-22 05:42:00','Lat: 14.644531, Lng: -90.480881','2025-05-22',NULL,'En Proceso',3),(4,'2025-05-22 05:11:00','2025-05-21 06:11:00','Lat: 14.651673, Lng: -90.489464','2025-05-22',NULL,'En Proceso',4);
 /*!40000 ALTER TABLE `generartransporte` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -54,4 +56,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-21 17:39:35
+-- Dump completed on 2025-05-22 23:23:30

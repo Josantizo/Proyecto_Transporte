@@ -16,34 +16,28 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `pasajeros`
+-- Table structure for table `sequences`
 --
 
-DROP TABLE IF EXISTS `pasajeros`;
+DROP TABLE IF EXISTS `sequences`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `pasajeros` (
-  `idPasajero` int NOT NULL AUTO_INCREMENT,
-  `BMS` varchar(10) NOT NULL,
-  `PrimerNombre` varchar(12) NOT NULL,
-  `SegundoNombre` varchar(12) NOT NULL,
-  `PrimerApellido` varchar(10) NOT NULL,
-  `SegundoApellido` varchar(10) NOT NULL,
-  `NumeroTelefono` varchar(9) NOT NULL,
-  `Direccion` varchar(55) NOT NULL,
-  `LOB` enum('COX Billing','COX Tech Support','Centene','Gusto') DEFAULT NULL,
-  PRIMARY KEY (`idPasajero`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `sequences` (
+  `name` varchar(50) NOT NULL,
+  `current_value` int NOT NULL DEFAULT '1',
+  `increment` int NOT NULL DEFAULT '1',
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `pasajeros`
+-- Dumping data for table `sequences`
 --
 
-LOCK TABLES `pasajeros` WRITE;
-/*!40000 ALTER TABLE `pasajeros` DISABLE KEYS */;
-INSERT INTO `pasajeros` VALUES (1,'282003','Diego','Javier','Morataya','Estrada','36976446','Km 32.5 carretera Antigua Guatemala','COX Tech Support'),(2,'282000','Jose','Maria','Santizo','Guillermo','25587854','Km 30 camino a chimal','Centene');
-/*!40000 ALTER TABLE `pasajeros` ENABLE KEYS */;
+LOCK TABLES `sequences` WRITE;
+/*!40000 ALTER TABLE `sequences` DISABLE KEYS */;
+INSERT INTO `sequences` VALUES ('detalle_generartransporte_seq',4,1),('generartransporte_seq',4,1);
+/*!40000 ALTER TABLE `sequences` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -55,4 +49,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-22 23:23:31
+-- Dump completed on 2025-05-22 23:23:30
