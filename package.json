@@ -3,11 +3,13 @@
     "axios": "^1.9.0",
     "react-router-dom": "^7.6.0"
   },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.1.4"
+  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "start": "vite preview",
+    "build": "vite build",
     "dev": "vite"
   }
 }
