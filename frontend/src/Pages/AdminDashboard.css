@@ -463,4 +463,87 @@
 }
 .filter-select:focus {
   border-color: var(--color-main);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content h3 {
+    margin: 0 0 16px 0;
+    color: #333;
+    font-size: 1.25rem;
+}
+
+.modal-content p {
+    margin: 0 0 16px 0;
+    color: #666;
+}
+
+.rejection-comment-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-size: 1rem;
+    resize: vertical;
+}
+
+.rejection-comment-input:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.modal-actions button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.modal-actions .cancel-button {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    color: #666;
+}
+
+.modal-actions .cancel-button:hover {
+    background: #e8e8e8;
+}
+
+.modal-actions .confirm-button {
+    background: #dc3545;
+    border: none;
+    color: white;
+}
+
+.modal-actions .confirm-button:hover {
+    background: #c82333;
 } 

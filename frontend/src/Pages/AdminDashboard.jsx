@@ -14,6 +14,9 @@ const AdminDashboard = () => {
         status: '',
         fecha: ''
     });
+    const [rejectionComment, setRejectionComment] = useState('');
+    const [selectedRequest, setSelectedRequest] = useState(null);
+    const [showRejectionModal, setShowRejectionModal] = useState(false);
 
     useEffect(() => {
         const userRole = localStorage.getItem('rol');
@@ -107,6 +110,12 @@ const AdminDashboard = () => {
 
     const handleStatusChange = async (requestId, newStatus) => {
         try {
+            if (newStatus === 'rechazado') {
+                setSelectedRequest(requestId);
+                setShowRejectionModal(true);
+                return;
+            }
+
             await axios.put(
                 `http://localhost:3001/api/admin/transport-requests/${requestId}/status`,
                 { status: newStatus },
@@ -119,6 +128,34 @@ const AdminDashboard = () => {
             fetchTransportRequests();
         } catch (error) {
             setError('Error al actualizar el estado de la solicitud');
+        }
+    };
+
+    const handleRejectRequest = async () => {
+        try {
+            if (!rejectionComment.trim()) {
+                setError('Por favor, ingrese un comentario para el rechazo');
+                return;
+            }
+
+            await axios.put(
+                `http://localhost:3001/api/admin/transport-requests/${selectedRequest}/status`,
+                { 
+                    status: 'rechazado',
+                    comment: rejectionComment.trim()
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                }
+            );
+            setShowRejectionModal(false);
+            setRejectionComment('');
+            setSelectedRequest(null);
+            fetchTransportRequests();
+        } catch (error) {
+            setError('Error al rechazar la solicitud');
         }
     };
 
@@ -263,6 +300,40 @@ const AdminDashboard = () => {
                         Total de solicitudes: {transportRequests.length}
                     </div>
                 </>
+            )}
+
+            {showRejectionModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3>Rechazar Solicitud</h3>
+                        <p>Por favor, ingrese el motivo del rechazo:</p>
+                        <textarea
+                            value={rejectionComment}
+                            onChange={(e) => setRejectionComment(e.target.value)}
+                            placeholder="Ingrese el motivo del rechazo..."
+                            rows="4"
+                            className="rejection-comment-input"
+                        />
+                        <div className="modal-actions">
+                            <button 
+                                onClick={() => {
+                                    setShowRejectionModal(false);
+                                    setRejectionComment('');
+                                    setSelectedRequest(null);
+                                }}
+                                className="cancel-button"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                onClick={handleRejectRequest}
+                                className="confirm-button"
+                            >
+                                Confirmar Rechazo
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

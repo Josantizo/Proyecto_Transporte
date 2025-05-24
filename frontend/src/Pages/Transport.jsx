@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Map from '../components/Map';
 import './Transport.css';
 
 const Transport = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [userAddress, setUserAddress] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
     const [transportData, setTransportData] = useState({
         horaEntrada: '',
         horaSalida: '',
@@ -24,6 +26,25 @@ const Transport = () => {
     });
 
     useEffect(() => {
+        // Check if we're editing an existing request
+        if (location.state?.editRequest) {
+            const request = location.state.editRequest;
+            setIsEditing(true);
+            setTransportData({
+                horaEntrada: new Date(request.HoraEntrada).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                horaSalida: new Date(request.HoraSalida).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                puntoReferencia: request.PuntoReferencia,
+                fechaSolicitud: new Date(request.FechaSolicitud).toISOString().split('T')[0],
+                direccionAlternativa: request.DireccionAlternativa || '',
+                usarDireccionAlternativa: !!request.DireccionAlternativa,
+                coordenadas: {
+                    lat: parseFloat(request.PuntoReferencia.split(',')[0].split(':')[1].trim()),
+                    lng: parseFloat(request.PuntoReferencia.split(',')[1].split(':')[1].trim())
+                }
+            });
+        }
+
+        // Fetch user's address
         const fetchUserAddress = async () => {
             try {
                 const token = localStorage.getItem('token');
@@ -32,80 +53,88 @@ const Transport = () => {
                 });
                 setUserAddress(response.data.Direccion || 'No hay dirección registrada');
             } catch (error) {
-                console.error('Error al obtener la dirección del usuario:', error);
+                console.error('Error fetching user address:', error);
                 setUserAddress('Error al cargar la dirección');
             }
         };
 
         fetchUserAddress();
-    }, []);
+    }, [location.state]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrorMessage('');
         setSuccessMessage('');
 
-        if (!transportData.coordenadas.lat || !transportData.coordenadas.lng) {
-            setErrorMessage('Por favor, selecciona una ubicación en el mapa');
+        // Validar que la hora de salida sea posterior a la hora de entrada
+        const horaEntrada = new Date(`2000-01-01T${transportData.horaEntrada}`);
+        const horaSalida = new Date(`2000-01-01T${transportData.horaSalida}`);
+
+        if (horaSalida <= horaEntrada) {
+            setErrorMessage('La hora de salida debe ser posterior a la hora de entrada');
             return;
         }
 
         // Combinar la fecha con las horas
         const fechaSolicitud = new Date(transportData.fechaSolicitud);
-        const horaEntrada = new Date(`2000-01-01T${transportData.horaEntrada}`);
-        const horaSalida = new Date(`2000-01-01T${transportData.horaSalida}`);
+        const horaEntradaDate = new Date(`2000-01-01T${transportData.horaEntrada}`);
+        const horaSalidaDate = new Date(`2000-01-01T${transportData.horaSalida}`);
 
         const fechaHoraEntrada = new Date(fechaSolicitud);
-        fechaHoraEntrada.setHours(horaEntrada.getHours(), horaEntrada.getMinutes());
+        fechaHoraEntrada.setHours(horaEntradaDate.getHours(), horaEntradaDate.getMinutes());
 
         const fechaHoraSalida = new Date(fechaSolicitud);
-        fechaHoraSalida.setHours(horaSalida.getHours(), horaSalida.getMinutes());
+        fechaHoraSalida.setHours(horaSalidaDate.getHours(), horaSalidaDate.getMinutes());
 
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
-            console.log('Sending request with data:', {
-                ...transportData,
-                horaEntrada: fechaHoraEntrada.toISOString(),
-                horaSalida: fechaHoraSalida.toISOString()
-            });
+            const endpoint = isEditing 
+                ? `http://localhost:3001/api/transport/update/${location.state.editRequest.idGenerarTransporte}`
+                : 'http://localhost:3001/api/transport/create';
 
-            const response = await axios.post('http://localhost:3001/api/transport/create', {
-                ...transportData,
-                horaEntrada: fechaHoraEntrada.toISOString(),
-                horaSalida: fechaHoraSalida.toISOString()
-            }, {
+            const response = await axios({
+                method: isEditing ? 'put' : 'post',
+                url: endpoint,
+                data: {
+                    ...transportData,
+                    horaEntrada: fechaHoraEntrada.toISOString(),
+                    horaSalida: fechaHoraSalida.toISOString()
+                },
                 headers: { 
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
 
-            console.log('Server response:', response.data);
-
             if (response.data.success) {
-                setSuccessMessage(response.data.message || 'Solicitud de transporte creada exitosamente');
-                setTransportData({
-                    horaEntrada: '',
-                    horaSalida: '',
-                    puntoReferencia: '',
-                    fechaSolicitud: '',
-                    direccionAlternativa: '',
-                    usarDireccionAlternativa: false,
-                    coordenadas: {
-                        lat: null,
-                        lng: null
-                    }
-                });
+                setSuccessMessage(response.data.message || `Solicitud ${isEditing ? 'actualizada' : 'creada'} exitosamente`);
+                if (!isEditing) {
+                    setTransportData({
+                        horaEntrada: '',
+                        horaSalida: '',
+                        puntoReferencia: '',
+                        fechaSolicitud: '',
+                        direccionAlternativa: '',
+                        usarDireccionAlternativa: false,
+                        coordenadas: {
+                            lat: null,
+                            lng: null
+                        }
+                    });
+                }
+                setTimeout(() => {
+                    navigate('/transport-requests');
+                }, 2000);
             } else {
-                setErrorMessage(response.data.message || 'Error al crear la solicitud de transporte');
+                setErrorMessage(response.data.message || `Error al ${isEditing ? 'actualizar' : 'crear'} la solicitud de transporte`);
             }
         } catch (error) {
-            console.error('Error creating transport request:', error);
+            console.error('Error:', error);
             setErrorMessage(
                 error.response?.data?.message || 
                 error.response?.data?.error || 
-                'Error al crear la solicitud de transporte'
+                `Error al ${isEditing ? 'actualizar' : 'crear'} la solicitud de transporte`
             );
         } finally {
             setLoading(false);
@@ -123,7 +152,7 @@ const Transport = () => {
     return (
         <div className="transport-container">
             <div className="transport-header">
-                <h2>Solicitar Transporte</h2>
+                <h2>{isEditing ? 'Editar Solicitud de Transporte' : 'Solicitar Transporte'}</h2>
             </div>
             
             {errorMessage && <div className="error-message">{errorMessage}</div>}
@@ -135,7 +164,7 @@ const Transport = () => {
                     <p>Haz clic en el mapa para seleccionar tu ubicación y ver la cobertura disponible.</p>
                     <Map 
                         onLocationSelect={handleLocationSelect}
-                        initialLocation={[14.6349, -90.5069]} // Coordenadas de Guatemala City
+                        initialLocation={transportData.coordenadas.lat ? [transportData.coordenadas.lat, transportData.coordenadas.lng] : [14.6349, -90.5069]}
                     />
                 </div>
 
@@ -218,7 +247,7 @@ const Transport = () => {
                             </div>
                         )}
                         <button type="submit" disabled={loading}>
-                            {loading ? 'Enviando...' : 'Solicitar Transporte'}
+                            {loading ? 'Enviando...' : isEditing ? 'Actualizar Solicitud' : 'Solicitar Transporte'}
                         </button>
                     </form>
                 </div>

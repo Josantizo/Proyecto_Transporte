@@ -9,22 +9,22 @@ const TransportRequests = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchRequests = async () => {
-            try {
-                const response = await axios.get('http://localhost:3001/api/transport/user-requests', {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                setRequests(response.data);
-                setLoading(false);
-            } catch (err) {
-                setError('Error al cargar las solicitudes');
-                setLoading(false);
-            }
-        };
+    const fetchRequests = async () => {
+        try {
+            const response = await axios.get('http://localhost:3001/api/transport/user-requests', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setRequests(response.data);
+            setLoading(false);
+        } catch (err) {
+            setError('Error al cargar las solicitudes');
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchRequests();
     }, []);
 
@@ -117,6 +117,10 @@ const TransportRequests = () => {
         }
     };
 
+    const handleEditRequest = (request) => {
+        navigate('/transport', { state: { editRequest: request } });
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-6">
@@ -154,26 +158,42 @@ const TransportRequests = () => {
                             </div>
                             <h3 style={{margin: '0 0 8px 0', fontWeight: 600, fontSize: '1.1rem'}}>Solicitud de Transporte</h3>
                             <div className="request-info">
-                                <p><strong>Entrada:</strong> {request.HoraEntrada}</p>
-                                <p><strong>Salida:</strong> {request.HoraSalida}</p>
+                                <p><strong>Entrada:</strong> {formatDate(request.HoraEntrada)}</p>
+                                <p><strong>Salida:</strong> {formatDate(request.HoraSalida)}</p>
                                 <p><strong>Referencia:</strong> {request.PuntoReferencia}</p>
                                 {request.DireccionAlternativa && (
                                     <p><strong>Alt. Dirección:</strong> {request.DireccionAlternativa}</p>
                                 )}
+                                {request.estado?.toLowerCase() === 'rechazado' && request.Comentario && (
+                                    <div className="rejection-comment">
+                                        <p><strong>Razón del rechazo:</strong></p>
+                                        <p className="comment-text">{request.Comentario}</p>
+                                    </div>
+                                )}
                             </div>
-                            {request.estado?.toLowerCase() === 'en proceso' && canCancelRequest(request.FechaSolicitud, request.HoraEntrada) && (
-                                <button
-                                    className="cancel-button"
-                                    onClick={() => handleCancelRequest(request.idGenerarTransporte)}
-                                >
-                                    Cancelar
-                                </button>
-                            )}
-                            {request.estado?.toLowerCase() === 'en proceso' && !canCancelRequest(request.FechaSolicitud, request.HoraEntrada) && (
-                                <div className="cancel-warning">
-                                    {getCancellationLimitMessage(request.FechaSolicitud, request.HoraEntrada)}
-                                </div>
-                            )}
+                            <div className="request-actions">
+                                {request.estado?.toLowerCase() === 'en proceso' && canCancelRequest(request.FechaSolicitud, request.HoraEntrada) && (
+                                    <button
+                                        className="cancel-button"
+                                        onClick={() => handleCancelRequest(request.idGenerarTransporte)}
+                                    >
+                                        Cancelar
+                                    </button>
+                                )}
+                                {request.estado?.toLowerCase() === 'en proceso' && !canCancelRequest(request.FechaSolicitud, request.HoraEntrada) && (
+                                    <div className="cancel-warning">
+                                        {getCancellationLimitMessage(request.FechaSolicitud, request.HoraEntrada)}
+                                    </div>
+                                )}
+                                {request.estado?.toLowerCase() === 'rechazado' && (
+                                    <button
+                                        className="edit-button"
+                                        onClick={() => handleEditRequest(request)}
+                                    >
+                                        Editar Solicitud
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     ))}
                 </div>

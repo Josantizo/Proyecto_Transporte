@@ -18,6 +18,7 @@ router.get('/user-requests', authenticateToken, async (req, res) => {
                 gt.PuntoReferencia,
                 gt.DireccionAlternativa,
                 gt.estado,
+                gt.Comentario,
                 p.BMS,
                 p.PrimerNombre,
                 p.PrimerApellido,
@@ -333,6 +334,117 @@ router.post('/create', authenticateToken, async (req, res) => {
             } catch (releaseError) {
                 console.error('Error al liberar la conexión:', releaseError);
             }
+        }
+    }
+});
+
+// Update transport request
+router.put('/update/:requestId', authenticateToken, async (req, res) => {
+    let connection;
+    try {
+        const userId = req.user.pasajeroId;
+        const requestId = req.params.requestId;
+        const {
+            horaEntrada,
+            horaSalida,
+            puntoReferencia,
+            fechaSolicitud,
+            direccionAlternativa,
+            usarDireccionAlternativa
+        } = req.body;
+
+        // Validar que todos los campos requeridos estén presentes
+        if (!horaEntrada || !horaSalida || !puntoReferencia || !fechaSolicitud) {
+            return res.status(400).json({
+                success: false,
+                message: 'Todos los campos son requeridos'
+            });
+        }
+
+        // Si se está usando una dirección alternativa, validar que esté presente
+        if (usarDireccionAlternativa && !direccionAlternativa) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'La dirección alternativa es requerida cuando se selecciona usar dirección alternativa' 
+            });
+        }
+
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        // Verificar que la solicitud exista y pertenezca al usuario
+        const checkQuery = `
+            SELECT gt.* 
+            FROM generartransporte gt
+            JOIN detalle_generartransporte dgt ON gt.idDetalle_GenerarTransporte = dgt.idDetalle_GenerarTransporte
+            WHERE gt.idGenerarTransporte = ? AND dgt.idPasajero_fk2 = ?
+        `;
+        
+        const [requests] = await connection.query(checkQuery, [requestId, userId]);
+        
+        if (requests.length === 0) {
+            await connection.rollback();
+            return res.status(404).json({ message: 'Solicitud no encontrada' });
+        }
+
+        const request = requests[0];
+
+        // Verificar que la solicitud esté rechazada
+        if (request.estado !== 'rechazado') {
+            await connection.rollback();
+            return res.status(400).json({ message: 'Solo se pueden editar solicitudes rechazadas' });
+        }
+
+        // Formatear las fechas para MySQL
+        const formatDateForMySQL = (dateString) => {
+            const date = new Date(dateString);
+            return date.toISOString().slice(0, 19).replace('T', ' ');
+        };
+
+        // Actualizar la solicitud
+        const updateQuery = `
+            UPDATE generartransporte 
+            SET 
+                HoraEntrada = ?,
+                HoraSalida = ?,
+                PuntoReferencia = ?,
+                FechaSolicitud = ?,
+                DireccionAlternativa = ?,
+                estado = 'En proceso',
+                Comentario = NULL
+            WHERE idGenerarTransporte = ?
+        `;
+
+        const valores = [
+            formatDateForMySQL(horaEntrada),
+            formatDateForMySQL(horaSalida),
+            puntoReferencia,
+            fechaSolicitud,
+            usarDireccionAlternativa ? direccionAlternativa : null,
+            requestId
+        ];
+
+        await connection.query(updateQuery, valores);
+        await connection.commit();
+
+        res.json({
+            success: true,
+            message: 'Solicitud actualizada exitosamente',
+            solicitudId: requestId
+        });
+    } catch (error) {
+        if (connection) {
+            await connection.rollback();
+        }
+        console.error('Error al actualizar la solicitud:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al actualizar la solicitud',
+            error: error.message
+        });
+    } finally {
+        if (connection) {
+            await connection.release();
         }
     }
 });

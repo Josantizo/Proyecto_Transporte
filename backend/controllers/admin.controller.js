@@ -154,9 +154,9 @@ const getTransportRequests = async (req, res) => {
 const updateTransportRequestStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body;
+        const { status, comment } = req.body;
 
-        console.log('Updating request:', id, 'to status:', status);
+        console.log('Updating request:', id, 'to status:', status, 'with comment:', comment);
 
         if (!['En proceso', 'aceptado', 'cancelado', 'rechazado'].includes(status)) {
             return res.status(400).json({ message: 'Estado inválido' });
@@ -172,9 +172,19 @@ const updateTransportRequestStatus = async (req, res) => {
             return res.status(404).json({ message: 'Solicitud no encontrada' });
         }
 
+        // Si el estado es rechazado, se requiere un comentario
+        if (status === 'rechazado' && !comment) {
+            return res.status(400).json({ message: 'Se requiere un comentario para rechazar la solicitud' });
+        }
+
+        // Si el estado no es rechazado, no debe haber comentario
+        if (status !== 'rechazado' && comment) {
+            return res.status(400).json({ message: 'Los comentarios solo son permitidos al rechazar una solicitud' });
+        }
+
         const [result] = await db.query(
-            'UPDATE generartransporte SET estado = ? WHERE idGenerarTransporte = ?',
-            [status, id]
+            'UPDATE generartransporte SET estado = ?, Comentario = ? WHERE idGenerarTransporte = ?',
+            [status, status === 'rechazado' ? comment : null, id]
         );
 
         res.json({ 
